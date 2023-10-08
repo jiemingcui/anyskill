@@ -1,0 +1,434 @@
+motions:
+ - file: "balance_cut_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "refined/breaststroke_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "refined/dig_cut_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "dribble_-1_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "refined/freestyles_swim_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "h_amp_humanoid_walk.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "happy_walk.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "refined/h_t_action_pushup_clipped_02_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "refined/h_h_t_Leg_Sweep.npy"
+   weight: 0.0006
+   text: "pass"
+ - file: "h_h_t_Low_Crawl.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "h_h_t_Mma_Kick.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "hold_bar_running.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "h_t_0005_SideSkip001.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "h_t_0005_SlowTrot001.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "h_t_0018_DanceTurns001.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "h_t_0018_DanceTurns002_cut_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "refined/t_005372_30fps_jump.npy"
+   weight: 0.000129032258064516
+   text: "pass"
+ - file: "h_t_action_baseball.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "h_t_climb-on-sloping-trunk-loop-c.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "h_t_crouch-walk-slow-loop.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "h_t_Goalie_Throw_1.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "h_t_Golf_Drive.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "h_t_Illegal_Elbow_Punch.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "h_t_jumprope_longrope_clipped_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "h_t_jumprope_singlerope.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "h_t_Left_Turn.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "h_t_market_customerbasket_idle_m_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "h_t_move_run_m_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "h_t_move_walkfast_m_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "h_t_right_turn.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "refined/t_RL_Avatar_Atk_Kick_Motion.npy"
+   weight: 0.006129032258064516
+   text: "pass"
+ - file: "h_t_Running_Backward.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "refined/h_t_stand-idle-to-crouch-idle.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "h_t_Walking_Backward.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "h_t_Walking_Turn_180.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "h_t_walk_normal_m.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "h_t_walk_tiptoe.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "jump180_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "jump360_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "refined/pickup_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Armada.npy"
+   weight: 0.006129032258064516
+   text: "pass"
+ - file: "t_Change_Direction.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Cheering.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Chicken_Dance.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Cross_Punch.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Crouched_Sneaking_Left.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "refined/t_Dancing_(1)_clipped2.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Dancing_(2).npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Dancing_(3)_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Dancing_forward_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_dodge-walk-c_clipped_01.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_dodge-walk-c_clipped_02.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Elbow_Punching.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Goalkeeper_Drop_Kick.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Hip_Hop_Dancing_(1)_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Hip_Hop_Dancing_(2)_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Hip_Hop_Dancing_(3)_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Hip_Hop_Dancing.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Hook.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Illegal_Knee.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "refined/t_Inside_Crescent_Kick_h.npy"
+   weight: 0.0006129032258064516
+   text: "pass"
+ - file: "t_Jab_Cross.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Jazz_Dancing_(1).npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Jogging.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Joyful_Jump.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "refined/t_jump-to-land.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Kicking.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Macarena_Dance_clipped(2).npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Martelo_2.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Mma_Kick_(1).npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Mma_Kick.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_move_greet_m_clipped_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_move_walkfast_m_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "refined/t_Northern_Soul_Spin_spot.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "refined/t_Pointing_Forward_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "refined/t_Praying_clipped_clipped.npy"
+   weight: 0.00864516129032258
+   text: "pass"
+ - file: "t_Punching_(1).npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Punching.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Roundhouse_Kick.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Rumba_Dancing.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Running_thing.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Samba_Dancing_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Silly_Dancing.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Stabbing.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Swing_Dancing.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_walk_calling_m.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Walking.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Wave_Hip_Hop_Dance_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_Zombie_Walk.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "wamup-jump-clap.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "refined/warmup_hand_to_foot_cut_clipped_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "warmup-shoulder.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "refined/warmup_squat_up.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "refined/warmup-waist_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Air_Squat.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Can_Can_(1)_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Chapa_2.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Chapa_Giratoria_2.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Drunk_Run_Forward.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Elbow_Uppercut_Combo.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Fight_Idle.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Flying_Kick_norun.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Goalkeeper_Placing_Ball_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Jazz_Dancing.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Jog_Strafe_Left.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Kicking_(1).npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Kicking_(2).npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Kicking.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Kneeling_Idle.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Mma_Kick.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Northern_Soul_Floor_Spin.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Pike_Walk_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Pistol_height_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Pontera.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Putting_Down.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Right_Cover_Sneak.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Running_Crawl.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Samba_Dancing_(1).npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Samba_Dancing_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Snatch_height_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Sneak_Walk.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "8-12-new/t_Walking.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "refined/t_Dancing_(1)_clipped.npy"
+   weight: 0.008064516129032258
+   text: "pass"
+ - file: "t_RL_Avatar_Atk_2xCombo01_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Atk_2xCombo02_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Atk_2xCombo03_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Atk_2xCombo04_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Atk_2xCombo05_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Atk_3xCombo01_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Atk_3xCombo02_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Atk_3xCombo03_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Atk_3xCombo04_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Atk_3xCombo05_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Atk_3xCombo06_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Atk_3xCombo07_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Atk_4xCombo01_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Atk_4xCombo02_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Atk_4xCombo03_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Atk_SlashDown_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Atk_SlashLeft_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Atk_SlashRight_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Atk_SlashUp_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Atk_Spin_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Atk_Stab_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Counter_Atk01_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Counter_Atk02_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Counter_Atk03_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Counter_Atk04_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Kill_2xCombo01_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Kill_2xCombo02_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Kill_3xCombo01_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Kill_3xCombo02_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Kill_4xCombo01_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Atk_Jump_Motion.npy"
+   weight: 0.00724638
+ - file: "t_RL_Avatar_Atk_Kick_Motion.npy"
+   weight: 0.00724638
