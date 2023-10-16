@@ -1,9 +1,9 @@
 import os
 import time
-import wandb
+# import wandb
 import torch
 import codecs
-import transformers
+# import transformers
 import numpy as np
 import torch.nn as nn
 import torch.optim as optim
@@ -13,6 +13,7 @@ from torch.nn.utils import clip_grad_norm_
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from Anyskill.utils.utils import *
+import open_clip
 
 
 def init_weight(m):
@@ -31,7 +32,7 @@ class MotionEncoderBuild(nn.Module):
         self.input_emb = nn.Linear(input_size, hidden_size)
         self.gru = nn.GRU(hidden_size, hidden_size, batch_first=True, bidirectional=True)
         self.output_net = nn.Sequential(
-            nn.Linear(hidden_size*2, hidden_size),
+            nn.Linear(hidden_size * 2, hidden_size),
             nn.LayerNorm(hidden_size),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Linear(hidden_size, output_size)
@@ -40,7 +41,7 @@ class MotionEncoderBuild(nn.Module):
         self.input_emb.apply(init_weight)
         self.output_net.apply(init_weight)
         self.hidden_size = hidden_size
-        self.hidden = nn.Parameter(torch.randn(2, 1, self.hidden_size), requires_grad=True) # need debug
+        self.hidden = nn.Parameter(torch.randn(2, 1, self.hidden_size), requires_grad=True)  # need debug
 
     def forward(self, inputs, m_lens):
         num_samples = inputs.shape[0]
@@ -72,7 +73,6 @@ class MovementEncoderBuild(nn.Module):
         self.out_net.apply(init_weight)
 
     def forward(self, inputs):
-
         # need further improvement
         # input_temp = inputs.view(-1,8,17*13).permute(0, 2, 1)
         # input_spa = inputs.view(-1,8*17,13).permute(0, 2, 1)
@@ -81,9 +81,9 @@ class MovementEncoderBuild(nn.Module):
         # outputs_temp = self.main(input_temp).permute(0, 2, 1)
         #
         # outputs = torch.cat(outputs_spa, outputs_temp)
-        inputs = inputs[:, :16, :]
-        inputs = inputs.view(-1,16,13).permute(0, 2, 1)
-        outputs = self.main(inputs).permute(0, 2, 1) # [1024,4,512]
+        inputs = inputs[:, :15, :]
+        inputs = inputs.view(-1, 15, 13).permute(0, 2, 1)
+        outputs = self.main(inputs).permute(0, 2, 1)  # [1024,4,512]
         # print(outputs.shape)
         return self.out_net(outputs)
 
@@ -91,16 +91,15 @@ class MovementEncoderBuild(nn.Module):
 # ================================================= Evaluator =================================================
 class MotionImgEvaluator():
     def __init__(self, motion_encoder, movement_encoder):
-
         self.device = "cuda:0"
         self.motion_encoder = motion_encoder
         self.movement_encoder = movement_encoder
 
-        model_dir = os.path.join("./Anyskill/output/", '24354.tar')
-        checkpoints = torch.load(model_dir, map_location=self.device)
-        self.motion_encoder.load_state_dict(checkpoints['motion_encoder'])
-        self.movement_encoder.load_state_dict(checkpoints['movement_encoder'])
-        print('Loading Evaluation Model Wrapper (Epoch %d) Completed!!' % (checkpoints['epoch']))
+        # model_dir = os.path.join("Anyskill/output/", '24354.tar')
+        # checkpoints = torch.load(model_dir, map_location=self.device)
+        # self.motion_encoder.load_state_dict(checkpoints['motion_encoder'])
+        # self.movement_encoder.load_state_dict(checkpoints['movement_encoder'])
+        # print('Loading Evaluation Model Wrapper (Epoch %d) Completed!!' % (checkpoints['epoch']))
 
         self.motion_encoder.to(self.device)
         self.movement_encoder.to(self.device)
@@ -114,5 +113,18 @@ class MotionImgEvaluator():
             motion = motion.detach().to(self.device).float()  # [1,16,13] [1024,17,13]
             movements = self.movement_encoder(motion).detach()  # [1,4,512]
             # m_lens = m_lens // self.opt.unit_length
-            motion_embedding = self.motion_encoder(movements, m_lens) # [1,512]
+            motion_embedding = self.motion_encoder(movements, m_lens)  # [1,512]
         return motion_embedding
+
+
+class TextToFeature:
+    def __init__(self):
+        self.mlip_model, _, self.mlip_preprocess = open_clip.create_model_and_transforms('ViT-B-32',
+                                                                                         pretrained='laion2b_s34b_b79k')
+        self.tokenizer = open_clip.get_tokenizer('ViT-B-32')
+
+    def encode_texts(self, texts):
+        texts_token = self.tokenizer(texts)
+        text_features = self.mlip_model.encode_text(texts_token).cuda()
+        text_features_norm = text_features / text_features.norm(dim=-1, keepdim=True)
+        return text_features_norm

@@ -15,16 +15,16 @@ env:
   numAMPEncObsSteps: 60
 
 
-  #  pdControl: True
+#    pdControl: True
 #  powerScale: 1.0
 #  controlFrequencyInv: 2 # 30 Hz
 #  stateInit: "Hybrid"
 #  hybridInitProb: 0.5
 #  numAMPObsSteps: 10
 #  numAMPEncObsSteps: 60
-#  recoveryEpisodeProb: 0.2
-#  recoverySteps: 60
-#  fallInitProb: 0.1
+  recoveryEpisodeProb: 0.2
+  recoverySteps: 60
+  fallInitProb: 0.1
 
 
   localRootObs: True

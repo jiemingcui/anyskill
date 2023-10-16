@@ -1,0 +1,7 @@
+texts:
+ - weight: 0.3333
+   text: "hello"
+ - weight: 0.3333
+   text: "hi"
+ - weight: 0.3333
+   text: "hey"
