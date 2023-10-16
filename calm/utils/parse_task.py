@@ -29,6 +29,7 @@
 from env.tasks.humanoid import Humanoid
 from env.tasks.humanoid_amp import HumanoidAMP
 from env.tasks.humanoid_amp_getup import HumanoidAMPGetup
+from env.tasks.humanoid_amp_getup_anyskill import HumanoidAMPGetupAnySKill
 
 from env.tasks.humanoid_clip import HumanoidHeading
 # from env.tasks.humanoid_heading import HumanoidHeading
