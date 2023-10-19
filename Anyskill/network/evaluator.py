@@ -95,10 +95,10 @@ class MotionImgEvaluator():
         self.motion_encoder = motion_encoder
         self.movement_encoder = movement_encoder
 
-        # model_dir = os.path.join("Anyskill/output/", '24354.tar')
-        # checkpoints = torch.load(model_dir, map_location=self.device)
-        # self.motion_encoder.load_state_dict(checkpoints['motion_encoder'])
-        # self.movement_encoder.load_state_dict(checkpoints['movement_encoder'])
+        model_dir = os.path.join("Anyskill/output/", '24354.tar')
+        checkpoints = torch.load(model_dir, map_location=self.device)
+        self.motion_encoder.load_state_dict(checkpoints['motion_encoder'])
+        self.movement_encoder.load_state_dict(checkpoints['movement_encoder'])
         # print('Loading Evaluation Model Wrapper (Epoch %d) Completed!!' % (checkpoints['epoch']))
 
         self.motion_encoder.to(self.device)

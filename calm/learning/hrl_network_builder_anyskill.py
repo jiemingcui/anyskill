@@ -75,7 +75,7 @@ class HRLBuilder(network_builder.A2CBuilder):
 
             z_text_idx = torch.multinomial(self.text_weights, num_samples=n, replacement=True)
             z = self.all_text_embeddings[z_text_idx, :]
-            z = torch.normal(mean=z, std=0.0)
+            # z = torch.normal(mean=z, std=0.0)
             z = torch.nn.functional.normalize(z, dim=-1)
             return z, z_text_idx
 
