@@ -1,7 +1,7 @@
 texts:
  - weight: 0.3333
-   text: "hello"
+   text: "put hands up"
  - weight: 0.3333
-   text: "hi"
+   text: "put hands down"
  - weight: 0.3333
-   text: "hey"
+   text: "arm lift"

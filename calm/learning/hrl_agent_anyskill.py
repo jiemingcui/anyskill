@@ -88,6 +88,9 @@ class HRLAgentAnyskill(common_agent.CommonAgent):
             image_features_norm = image_features / image_features.norm(dim=-1, keepdim=True)
 
             anyskill_rewards = self.vec_env.env.task.compute_anyskill_reward(image_features_norm, self._text_latents, self._latent_text_idx)
+            self.writer.add_scalar('reward/rew_clip', torch.mean(anyskill_rewards), self.frame)
+            self.writer.add_scalar('reward/rew_aux', torch.mean(aux_rewards), self.frame)
+
             curr_rewards = anyskill_rewards + aux_rewards
             self._llc_actions[t] = llc_actions
             rewards += curr_rewards

@@ -203,17 +203,18 @@ class HumanoidAMPGetupAnySKill(HumanoidAMPGetup):
 
     def compute_anyskill_reward(self, img_features_norm, text_features_norm, corresponding_id):
 
-        similarity_m = (100.0 * torch.matmul(img_features_norm, text_features_norm.permute(1, 0))).squeeze()
+        similarity_m = (torch.matmul(img_features_norm, text_features_norm.permute(1, 0))).squeeze()
         rows = torch.arange(corresponding_id.size(0))
         similarity = similarity_m[rows, corresponding_id]
 
-        clip_err_scale = 0.15
-        clip_reward_w = 0.98
-        sim_mask = similarity <= 22
-        similarity[sim_mask] = 0
+        clip_err_scale = 2.0
+        clip_reward_w = 0.8
+        # sim_mask = similarity <= 22
+        # similarity[sim_mask] = 0
         # similarity_bar = torch.mean(similarity)
-        clip_reward = torch.exp(clip_err_scale * similarity)
-        return clip_reward_w * clip_reward
+
+        # clip_reward = torch.exp(clip_err_scale * similarity)
+        return clip_reward_w * similarity
 
     def _update_task(self):
         reset_task_mask = self.progress_buf >= self._heading_change_steps
