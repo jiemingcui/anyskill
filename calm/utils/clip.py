@@ -1,6 +1,8 @@
 from PIL import Image
 import requests
 import time
+import numpy as np
+import torch
 
 from transformers import CLIPProcessor, CLIPModel
 
@@ -22,6 +24,9 @@ print("Time of model running is ", (end2 - start))
 
 logits_per_image = outputs.logits_per_image # this is the image-text similarity score
 print(logits_per_image)
+
+sim = torch.exp(-2 * logits_per_image)
+print("sim is ", sim)
 end3 = time.time()
 print("Time of similarity calculation is ", (end3 - end1))
 

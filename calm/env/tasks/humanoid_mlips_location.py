@@ -127,6 +127,7 @@ class HumanoidLocationConditioned(HumanoidLocation):
 
         self.frame = 0
         # self._similarity = torch.zeros([self.num_envs], device=self.device, dtype=torch.long)
+
         return
 
     def _process(self, n_px):
@@ -211,7 +212,9 @@ class HumanoidLocationConditioned(HumanoidLocation):
         image_features_norm = image_features / image_features.norm(dim=-1, keepdim=True)
         text_features /= text_features.norm(dim=-1, keepdim=True)
 
-        similarity = 100.0 * image_features_norm @ text_features.T  # this is the image-text similarity score
+        similarity = image_features_norm @ text_features.T  # this is the image-text similarity score
+        # similarity = 100.0 * image_features_norm @ text_features.T  # this is the image-text similarity score
+
 
         # end2 = time.time()
         # print("Time of model running is ", (end2 - start))
@@ -231,9 +234,6 @@ class HumanoidLocationConditioned(HumanoidLocation):
         self.clip_features.append(image_features.data.cpu().numpy())
         self.motionclip_features.append(state_embeds.data.cpu().numpy())
 
-        np.save("./output/motion_feature_location.npy", self.motionclip_features)
-        np.save("./output/text_feature_location.npy", self.clip_features)
-
         # train_features = torch.cat((outputs.image_embeds, outputs.text_embeds), 0)
         # similarity = outputs.logits_per_image  # this is the image-text similarity score
         # # count = int((self.frame - 150)/300)
@@ -241,8 +241,8 @@ class HumanoidLocationConditioned(HumanoidLocation):
         # self.clip_features.append(train_features.data.cpu().numpy())
         # np.save("./output/train_feature1.npy", self.clip_features)
         #
-        self._memory[self.frame] = similarity
-        np.save("./output/sim_location.npy", self._memory)
+        # self._memory[self.frame] = similarity
+        # np.save("./output/sim_location.npy", self._memory)
 
         return similarity
         # end3 = time.time()
@@ -308,10 +308,11 @@ class HumanoidLocationConditioned(HumanoidLocation):
         #                                          self._tar_speed, self.dt, self._similarity)
         root_pos = self._humanoid_root_states[..., 0:3]
         root_rot = self._humanoid_root_states[..., 3:7]
-        self.rew_buf[:] = compute_location_reward(root_pos, self._prev_root_pos, root_rot,
+        self.rew_buf[:], self.rew_pos[:], self.rew_vel[:], self.rew_face[:], self.rew_clip[:] = compute_location_reward(root_pos, self._prev_root_pos, root_rot,
                                                   self._tar_pos, self._tar_speed,
                                                   self.dt, self._similarity)
         return
+
 
     def _reset_task(self, env_ids):
         n = len(env_ids)
@@ -410,8 +411,8 @@ def compute_location_heading_observations(root_states, tar_pos, tar_height):
     root_pos = root_states[:, 0:3]
     root_rot = root_states[:, 3:7]
 
-    tar_vec = tar_pos - root_pos[..., 0:2]
-
+    tar_pos_new = torch.zeros_like(tar_pos)
+    tar_vec = tar_pos_new - root_pos[..., 0:2]
     tar_dir = torch.nn.functional.normalize(tar_vec, dim=-1)
     heading_theta = torch.atan2(tar_dir[..., 1], tar_dir[..., 0])
     tar_dir = torch.stack([torch.cos(heading_theta), torch.sin(heading_theta)], dim=-1)
@@ -442,25 +443,31 @@ def compute_location_observations(root_states, tar_pos):
     return obs
 
 
-@torch.jit.script
+# @torch.jit.script
 def compute_location_reward(root_pos, prev_root_pos, root_rot, tar_pos, tar_speed, dt, similarity):
-    # type: (Tensor, Tensor, Tensor, Tensor, float, float, Tensor) -> Tensor
+    # type: # (Tensor, Tensor, Tensor, Tensor, float, float, Tensor) -> Tensor
     dist_threshold = 0.5
 
     pos_err_scale = 0.5
-    vel_err_scale = 4.0
-    clip_err_scale = 0.15
+    # vel_err_scale = 4.0
+    # clip_err_scale = 2.0
+
+    vel_err_scale = 0.25
+    # dir_err_scale = 2.0
+    clip_err_scale = 2.0
 
     pos_reward_w = 0.05
     vel_reward_w = 0.1
     face_reward_w = 0.05
     clip_reward_w = 0.8
 
-    pos_diff = tar_pos - root_pos[..., 0:2]
+    tar_pos_new = torch.zeros_like(tar_pos)
+    pos_diff = tar_pos_new - root_pos[..., 0:2]
     pos_err = torch.sum(pos_diff * pos_diff, dim=-1)
     pos_reward = torch.exp(-pos_err_scale * pos_err)
 
-    tar_dir = tar_pos - root_pos[..., 0:2]
+    tar_dir = tar_pos_new - root_pos[..., 0:2]
+    # tar_dir = tar_pos - root_pos[..., 0:2]
     tar_dir = torch.nn.functional.normalize(tar_dir, dim=-1)
 
     delta_root_pos = root_pos - prev_root_pos
@@ -484,13 +491,23 @@ def compute_location_reward(root_pos, prev_root_pos, root_rot, tar_pos, tar_spee
     facing_reward[dist_mask] = 1.0
     vel_reward[dist_mask] = 1.0
 
-    sim_mask = similarity <= 22
-    similarity[sim_mask] = 0
+    # sim_mask = similarity <= 22
+    # similarity[sim_mask] = 0
+    # similarity = similarity - 0.2
+    # similarity = similarity - 0.22
     similarity_bar = torch.mean(similarity)
-    clip_reward = torch.exp(clip_err_scale * similarity_bar)
+    # expand similarity_bar to match the shape of vel_reward
+    similarity_bar = similarity_bar.expand_as(vel_reward)
+    clip_reward = similarity_bar
+    # clip_reward = torch.exp(-clip_err_scale * similarity_bar)
 
     # reward = vel_reward_w * vel_reward + clip_reward_w * clip_reward
     # reward = vel_reward_w * vel_reward + face_reward_w * move_dir_reward + clip_reward_w * clip_reward
-    reward = pos_reward_w * pos_reward + vel_reward_w * vel_reward + face_reward_w * facing_reward + clip_reward_w * clip_reward
+    reward_pos = pos_reward_w * pos_reward # [1024, 1]
+    reward_vel = vel_reward_w * vel_reward
+    reward_face = face_reward_w * facing_reward
+    reward_clip = clip_reward_w * clip_reward
 
-    return reward
+    reward = reward_pos + reward_vel + reward_face + reward_clip
+
+    return reward, reward_pos, reward_vel, reward_face, reward_clip

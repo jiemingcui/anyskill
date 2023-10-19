@@ -65,6 +65,19 @@ class BaseTask:
             (self.num_envs, self.num_obs), device=self.device, dtype=torch.float)
         self.states_buf = torch.zeros(
             (self.num_envs, self.num_states), device=self.device, dtype=torch.float)
+
+        self.img_clip = torch.zeros(
+            1, device=self.device, dtype=torch.float)
+
+        self.rew_pos = torch.zeros(
+            self.num_envs, device=self.device, dtype=torch.float)
+        self.rew_vel = torch.zeros(
+            self.num_envs, device=self.device, dtype=torch.float)
+        self.rew_face = torch.zeros(
+            self.num_envs, device=self.device, dtype=torch.float)
+        self.rew_clip = torch.zeros(
+            self.num_envs, device=self.device, dtype=torch.float)
+
         self.rew_buf = torch.zeros(
             self.num_envs, device=self.device, dtype=torch.float)
         self.reset_buf = torch.ones(

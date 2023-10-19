@@ -42,9 +42,11 @@ from matplotlib import pyplot as plt
 
 from env.tasks.humanoid_location import HumanoidLocation
 from utils import torch_utils
+from utils import anyskill
 from isaacgym.gymutil import get_property_setter_map, get_property_getter_map, get_default_setter_args, apply_random_samples, check_buckets, generate_random_samples
 from torchvision.transforms import Compose, Resize, CenterCrop, ToTensor, Normalize, InterpolationMode
 # from transformers import CLIPProcessor, CLIPModel
+from Anyskill import *
 import open_clip
 
 
@@ -62,7 +64,7 @@ class IdleType(Enum):
     ROAR = 8
     CROUCH = 9
 
-class HumanoidLocationConditioned(HumanoidLocation):
+class HumanoidLocationConditionedHeadless(HumanoidLocation):
     def __init__(self, cfg, sim_params, physics_engine, device_type, device_id, headless):
         super().__init__(cfg=cfg,
                          sim_params=sim_params,
@@ -116,6 +118,7 @@ class HumanoidLocationConditioned(HumanoidLocation):
         self._similarity = torch.zeros([RANGE], device=self.device, dtype=torch.float32)
         self.mlip_model, _, self.mlip_preprocess = open_clip.create_model_and_transforms('ViT-B-32', pretrained='laion2b_s34b_b79k')
         self.tokenizer = open_clip.get_tokenizer('ViT-B-32')
+        self.anyskill = anyskill.anytest()
 
         self.frame = 0
         return
@@ -127,7 +130,7 @@ class HumanoidLocationConditioned(HumanoidLocation):
         caption = raw_caption.replace("_", " ")
 
         image_features = self.anyskill.get_motion_embedding(state_embeds)
-        image_features_norm = image_features / image_features.norm(dim=-1, keepdim=True)
+        # image_features_norm = image_features / image_features.norm(dim=-1, keepdim=True)
         image_dim = image_features.shape[0]
 
         text = self.tokenizer([caption])
@@ -135,8 +138,8 @@ class HumanoidLocationConditioned(HumanoidLocation):
         # text_features = text_features.repeat(image_dim, 1).cuda()
         text_features_norm = text_features / text_features.norm(dim=-1, keepdim=True)
 
-        similarity = 100.0 * torch.matmul(image_features_norm, text_features_norm.permute(1, 0))  # this is the image-text similarity score
-        # similarity = 100.0 * image_features_norm @ text_features_norm.T  # this is the image-text similarity score
+        similarity = torch.matmul(image_features, text_features_norm.permute(1, 0))  # this is the image-text similarity score
+        # similarity = image_features_norm @ text_features_norm.T  # this is the image-text similarity score
 
         # self.clip_features.append(image_features.data.cpu().numpy())
         # self.motionclip_features.append(state_embeds.data.cpu().numpy())
@@ -200,7 +203,7 @@ class HumanoidLocationConditioned(HumanoidLocation):
     def _compute_reward(self, actions):
         root_pos = self._humanoid_root_states[..., 0:3]
         root_rot = self._humanoid_root_states[..., 3:7]
-        self.rew_buf[:] = compute_location_reward(root_pos, self._prev_root_pos, root_rot,
+        self.rew_buf[:], self.rew_pos[:], self.rew_vel[:], self.rew_face[:], self.rew_clip[:] = compute_location_reward(root_pos, self._prev_root_pos, root_rot,
                                                   self._tar_pos, self._tar_speed,
                                                   self.dt, self._similarity)
         return
@@ -223,7 +226,7 @@ class HumanoidLocationConditioned(HumanoidLocation):
 
         change_steps = torch.randint(low=self._tar_change_steps_min, high=self._tar_change_steps_max,
                                      size=(n,), device=self.device, dtype=torch.int64)
-        state_embeds = self._rigid_state_tensor[env_ids, :, :]
+        state_embeds = self._rigid_state_tensor[env_ids, :15, :3]
 
         self._should_strike[env_ids] = 0
         self._stay_idle[env_ids] = 0
@@ -279,26 +282,30 @@ def compute_location_observations(root_states, tar_pos):
     obs = local_tar_pos
     return obs
 
-
-@torch.jit.script
 def compute_location_reward(root_pos, prev_root_pos, root_rot, tar_pos, tar_speed, dt, similarity):
-    # type: (Tensor, Tensor, Tensor, Tensor, float, float, Tensor) -> Tensor
+    # type: # (Tensor, Tensor, Tensor, Tensor, float, float, Tensor) -> Tensor
     dist_threshold = 0.5
 
     pos_err_scale = 0.5
-    vel_err_scale = 4.0
-    clip_err_scale = 0.15
+    # vel_err_scale = 4.0
+    # clip_err_scale = 2.0
+
+    vel_err_scale = 0.25
+    # dir_err_scale = 2.0
+    clip_err_scale = 2.0
 
     pos_reward_w = 0.05
     vel_reward_w = 0.1
     face_reward_w = 0.05
     clip_reward_w = 0.8
 
-    pos_diff = tar_pos - root_pos[..., 0:2]
+    tar_pos_new = torch.zeros_like(tar_pos)
+    pos_diff = tar_pos_new - root_pos[..., 0:2]
     pos_err = torch.sum(pos_diff * pos_diff, dim=-1)
     pos_reward = torch.exp(-pos_err_scale * pos_err)
 
-    tar_dir = tar_pos - root_pos[..., 0:2]
+    tar_dir = tar_pos_new - root_pos[..., 0:2]
+    # tar_dir = tar_pos - root_pos[..., 0:2]
     tar_dir = torch.nn.functional.normalize(tar_dir, dim=-1)
 
     delta_root_pos = root_pos - prev_root_pos
@@ -322,13 +329,15 @@ def compute_location_reward(root_pos, prev_root_pos, root_rot, tar_pos, tar_spee
     facing_reward[dist_mask] = 1.0
     vel_reward[dist_mask] = 1.0
 
-    sim_mask = similarity <= 22
-    similarity[sim_mask] = 0
-    similarity_bar = torch.mean(similarity)
-    clip_reward = torch.exp(clip_err_scale * similarity_bar)
+    # similarity_bar = torch.mean(similarity)
+    clip_reward = similarity
+    # clip_reward = torch.exp(clip_err_scale * similarity)
 
-    # reward = vel_reward_w * vel_reward + clip_reward_w * clip_reward
-    # reward = vel_reward_w * vel_reward + face_reward_w * move_dir_reward + clip_reward_w * clip_reward
-    reward = pos_reward_w * pos_reward + vel_reward_w * vel_reward + face_reward_w * facing_reward + clip_reward_w * clip_reward
+    reward_pos = pos_reward_w * pos_reward # [1024, 1]
+    reward_vel = vel_reward_w * vel_reward
+    reward_face = face_reward_w * facing_reward
+    reward_clip = clip_reward_w * clip_reward
 
-    return reward
+    reward = reward_pos + reward_vel + reward_face + reward_clip
+
+    return reward, reward_pos, reward_vel, reward_face, reward_clip
