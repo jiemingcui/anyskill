@@ -71,7 +71,7 @@ class Humanoid(BaseTask):
         super().__init__(cfg=self.cfg)
         
         self.dt = self.control_freq_inv * sim_params.dt
-        
+
         # get gym GPU state tensors
         actor_root_state = self.gym.acquire_actor_root_state_tensor(self.sim)
         dof_state_tensor = self.gym.acquire_dof_state_tensor(self.sim)
@@ -281,6 +281,7 @@ class Humanoid(BaseTask):
         self.max_motor_effort = max(motor_efforts)
         self.motor_efforts = to_torch(motor_efforts, device=self.device)
 
+        self._frame = 0
         self.torso_index = 0
         self.num_bodies = self.gym.get_asset_rigid_body_count(humanoid_asset)
         self.num_dof = self.gym.get_asset_dof_count(humanoid_asset)
@@ -296,6 +297,7 @@ class Humanoid(BaseTask):
         self.camera_props.width = 224
         self.camera_props.height = 224
         self.camera_props.enable_tensors = True
+        self.torch_rgba_tensor = torch.zeros([self.num_envs, 224, 224, 3], device=self.device, dtype=torch.float32)
 
         for i in range(self.num_envs):
             # create env instance
@@ -337,6 +339,9 @@ class Humanoid(BaseTask):
         camera_handle = self.gym.create_camera_sensor(env_ptr, self.camera_props)
         self.gym.set_camera_location(camera_handle, env_ptr, gymapi.Vec3(1.2, 1.3, 0.5), gymapi.Vec3(-0.5, 0.7, -0.5))
         self.camera_handles.append(camera_handle)
+
+        camera_rgba_tensor = self.gym.get_camera_image_gpu_tensor(self.sim, env_ptr, camera_handle, gymapi.IMAGE_COLOR)
+        self.torch_rgba_tensor[env_id] = gymtorch.wrap_tensor(camera_rgba_tensor)[:,:,:3].float() # [224,224,3] -> IM -> [env,224,224,3]
 
         self.gym.enable_actor_dof_force_sensors(env_ptr, humanoid_handle)
 
@@ -485,14 +490,11 @@ class Humanoid(BaseTask):
         return
 
     def render(self, sync_frame_time=False):
-        if self.viewer:
-            pos, target = self._update_camera()
+        # if self.viewer:
+        #     self._update_camera()
 
         # # train
         super().render(sync_frame_time)
-
-        # # render
-        # super().render(pos, target, sync_frame_time)
         return
 
     def _build_key_body_ids_tensor(self, key_body_names):
@@ -528,45 +530,45 @@ class Humanoid(BaseTask):
     def _init_camera(self):
         self.gym.refresh_actor_root_state_tensor(self.sim)
 
-        # # change the setting to multi envs
-        # self._cam_prev_char_pos = torch.zeros([self.num_envs, 3], device=self.device, dtype=torch.long)
-        # # self._cam_prev_char_pos = self._humanoid_root_states[0, 0:3].cpu().numpy()
-        #
-        # cam_pos = gymapi.Vec3(self._cam_prev_char_pos[0, 0],
-        #                       self._cam_prev_char_pos[0, 1] - 3.0,
+        # change the setting to multi envs
+        self._cam_prev_char_pos = torch.zeros([self.num_envs, 3], device=self.device, dtype=torch.long)
+        # self._cam_prev_char_pos = self._humanoid_root_states[0, 0:3].cpu().numpy()
+
+        cam_pos = gymapi.Vec3(self._cam_prev_char_pos[0, 0],
+                              self._cam_prev_char_pos[0, 1] - 3.0,
+                              1.0)
+        cam_target = gymapi.Vec3(self._cam_prev_char_pos[0, 0],
+                                 self._cam_prev_char_pos[0, 1],
+                                 1.0)
+        # # setting for only one env
+        # self._cam_prev_char_pos = self._humanoid_root_states[0, 0:3].cpu().numpy()
+        # cam_pos = gymapi.Vec3(self._cam_prev_char_pos[0],
+        #                       self._cam_prev_char_pos[1] - 3.0,
         #                       1.0)
-        # cam_target = gymapi.Vec3(self._cam_prev_char_pos[0, 0],
-        #                          self._cam_prev_char_pos[0, 1],
+        # cam_target = gymapi.Vec3(self._cam_prev_char_pos[0],
+        #                          self._cam_prev_char_pos[1],
         #                          1.0)
 
-        # setting for only one env
-        self._cam_prev_char_pos = self._humanoid_root_states[0, 0:3].cpu().numpy()
-        cam_pos = gymapi.Vec3(self._cam_prev_char_pos[0],
-                              self._cam_prev_char_pos[1] - 3.0,
-                              1.0)
-        cam_target = gymapi.Vec3(self._cam_prev_char_pos[0],
-                                 self._cam_prev_char_pos[1],
-                                 1.0)
         self.gym.viewer_camera_look_at(self.viewer, None, cam_pos, cam_target)
+
         return
 
     def _update_camera(self):
         self.gym.refresh_actor_root_state_tensor(self.sim)
-        char_root_pos = self._humanoid_root_states[0, 0:3].cpu().numpy()
-        
+        char_root_pos = self._humanoid_root_states[:, 0:3].cpu().numpy()
+        self._cam_prev_char_pos = char_root_pos
+
         cam_trans = self.gym.get_viewer_camera_transform(self.viewer, None)
         cam_pos = np.array([cam_trans.p.x, cam_trans.p.y, cam_trans.p.z])
-        cam_delta = cam_pos - self._cam_prev_char_pos
+        cam_delta = cam_pos - self._cam_prev_char_pos[0]
 
-        new_cam_target = gymapi.Vec3(char_root_pos[0], char_root_pos[1], 1.0)
-        new_cam_pos = gymapi.Vec3(char_root_pos[0] + cam_delta[0], 
-                                  char_root_pos[1] + cam_delta[1], 
+        new_cam_target = gymapi.Vec3(char_root_pos[0, 0], char_root_pos[0, 1], 1.0)
+        new_cam_pos = gymapi.Vec3(char_root_pos[0, 0] + cam_delta[0],
+                                  char_root_pos[0, 1] + cam_delta[1],
                                   cam_pos[2])
 
         self.gym.viewer_camera_look_at(self.viewer, None, new_cam_pos, new_cam_target)
 
-        self._cam_prev_char_pos[:] = char_root_pos
-        return new_cam_pos, new_cam_target
 
     def _update_debug_viz(self):
         self.gym.clear_lines(self.viewer)

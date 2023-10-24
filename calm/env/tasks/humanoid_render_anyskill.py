@@ -66,8 +66,51 @@ class HumanoidRenderAnySKill(HumanoidAMPGetup):
 
         self._tar_speed = torch.ones([self.num_envs], device=self.device, dtype=torch.float)
         self._heading_change_steps = torch.zeros([self.num_envs], device=self.device, dtype=torch.int64)
+        self._similarity = torch.zeros([self.num_envs], device=self.device, dtype=torch.float32)
+        self._punish_count = torch.zeros([self.num_envs], device=self.device, dtype=torch.int)
+        # self._frame = 0
 
         return
+
+    def render(self, sync_frame_time=False):
+        super(HumanoidRenderAnySKill, self).render()
+        self._frame += 1
+        if self.frame > 150 and self.frame%30 == 1:
+            self.gym.refresh_actor_root_state_tensor(self.sim)
+            char_root_pos = self._humanoid_root_states[:, 0:3].cpu().numpy()
+            char_root_rot = self._humanoid_root_states[:, 3:7].cpu().numpy()
+            self._cam_prev_char_pos[:] = char_root_pos
+            self.gym.render_all_camera_sensors(self.sim)
+            self.gym.start_access_image_tensors(self.sim)
+
+            start = time.time()
+            for env_id in range(self.num_envs):
+                cam_trans = self.gym.get_viewer_camera_transform(self.viewer, None)
+                cam_pos = np.array([cam_trans.p.x, cam_trans.p.y, cam_trans.p.z])
+                cam_delta = cam_pos - self._cam_prev_char_pos[env_id]
+
+                target = gymapi.Vec3(char_root_pos[env_id, 0], char_root_pos[env_id, 1], 1.0)
+                pos = gymapi.Vec3(char_root_pos[env_id, 0] + cam_delta[0],
+                                  char_root_pos[env_id, 1] + cam_delta[1],
+                                  cam_pos[2])
+
+                self.gym.viewer_camera_look_at(self.viewer, None, pos, target)
+                camera_handle = self.camera_handles[env_id]
+                pos_nearer = gymapi.Vec3(pos.x + 1.2, pos.y + 1.2, pos.z)
+
+                self.gym.set_camera_location(camera_handle, self.envs[env_id], pos_nearer, target)
+
+                # camera_rgba_tensor = self.gym.get_camera_image_gpu_tensor(self.sim, self.envs[env_id], camera_handle,
+                #                                                           gymapi.IMAGE_COLOR)
+                # torch_rgba_tensor = gymtorch.wrap_tensor(camera_rgba_tensor)
+            print("time of render {} frames' image: {}".format(env_id, (time.time() - start)))
+
+            self.gym.end_access_image_tensors(self.sim)
+
+        return self.torch_rgba_tensor.permute(0, 3, 1, 2)
+
+        # else:
+        #     return torch.zeros([self.num_envs, 224, 224, 3], device=self.device, dtype=torch.float32)
 
     def get_task_obs_size(self):
         obs_size = 512  # dim for text_latents
@@ -77,7 +120,7 @@ class HumanoidRenderAnySKill(HumanoidAMPGetup):
         humanoid_obs = self._compute_humanoid_obs(env_ids)
 
         anyskill_obs = torch.zeros((humanoid_obs.shape[0], 512), device=self.device)
-        obs = torch.cat([humanoid_obs, anyskill_obs], dim=-1)  # 用0先占位
+        obs = torch.cat([humanoid_obs, anyskill_obs], dim=-1)
         # obs = humanoid_obs
         if (env_ids is None):
             self.obs_buf[:] = obs
@@ -115,7 +158,6 @@ class HumanoidRenderAnySKill(HumanoidAMPGetup):
         self.gym.set_dof_state_tensor_indexed(self.sim,
                                               gymtorch.unwrap_tensor(self._dof_state),
                                               gymtorch.unwrap_tensor(env_ids_int32), len(env_ids_int32))
-
 
         rand_actions = np.random.uniform(-0.5, 0.5, size=[self.num_envs, self.get_action_size()])
         rand_actions = to_torch(rand_actions, device=self.device)

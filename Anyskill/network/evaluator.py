@@ -69,14 +69,21 @@ class MotionImgEvaluator():
         return motion_embedding
 
 
-class TextToFeature:
+class FeatureExtractor():
     def __init__(self):
         self.mlip_model, _, self.mlip_preprocess = open_clip.create_model_and_transforms('ViT-B-32',
-                                                                                         pretrained='laion2b_s34b_b79k')
+                                                                                         pretrained='laion2b_s34b_b79k', device="cuda")
         self.tokenizer = open_clip.get_tokenizer('ViT-B-32')
 
     def encode_texts(self, texts):
-        texts_token = self.tokenizer(texts)
+        texts_token = self.tokenizer(texts).cuda()
         text_features = self.mlip_model.encode_text(texts_token).cuda()
         text_features_norm = text_features / text_features.norm(dim=-1, keepdim=True)
         return text_features_norm
+
+    def encode_images(self, images):
+        image_features = torch.zeros([images.shape[0], 512], device="cuda", dtype=torch.float32)
+        for i in range(images.shape[0]):
+            image_features[i] = self.mlip_model.encode_image(images[i].unsqueeze(0))
+
+        return image_features

@@ -64,7 +64,7 @@ class HRLAgentAnyskill(common_agent.CommonAgent):
         self._latent_steps_max = 90
 
         self.anyskill = anyskill.anytest()
-        self.text_encoder = anyskill.TextToFeature()
+        self.mlip_encoder = anyskill.FeatureExtractor()
         self.text_file = config['text_file']
 
         return
@@ -82,15 +82,16 @@ class HRLAgentAnyskill(common_agent.CommonAgent):
 
             obs, aux_rewards, curr_dones, infos = self.vec_env.step(llc_actions)
             obs[..., self.obs_shape[0] - self._task_size:] = self._text_latents
-            state_embeds = infos['state_embeds'][:, :15, :3]
 
+            # state_embeds = infos['state_embeds'][:, :15, :3]
+            # image_features = self.anyskill.get_motion_embedding(state_embeds)
 
-
-
-            image_features = self.anyskill.get_motion_embedding(state_embeds)
+            # Render
+            images = self.vec_env.env.task.render()
+            image_features = self.mlip_encoder.encode_images(images)
             image_features_norm = image_features / image_features.norm(dim=-1, keepdim=True)
-
-            anyskill_rewards = self.vec_env.env.task.compute_anyskill_reward(image_features_norm, self._text_latents, self._latent_text_idx)
+            anyskill_rewards = self.vec_env.env.task.compute_anyskill_reward(image_features_norm, self._text_latents,
+                                                                             self._latent_text_idx)
             curr_rewards = anyskill_rewards + aux_rewards
             self._llc_actions[t] = llc_actions
             rewards += curr_rewards
@@ -221,8 +222,6 @@ class HRLAgentAnyskill(common_agent.CommonAgent):
 
             self.obs, rewards, self.dones, infos, _llc_actions = self.env_step(res_dict['actions'])
 
-
-
             shaped_rewards = self.rewards_shaper(rewards)
             # self.experience_buffer.update_data('text_latents', n, self._text_latents)
             self.experience_buffer.update_data('rewards', n, shaped_rewards)
@@ -320,12 +319,11 @@ class HRLAgentAnyskill(common_agent.CommonAgent):
 
 
         texts, texts_weights = load_texts(self.text_file)
-        self.text_features = self.text_encoder.encode_texts(texts)
+        self.text_features = self.mlip_encoder.encode_texts(texts)
         self.text_weights = torch.tensor(texts_weights, device=self.device)
         self._text_latents = torch.zeros((batch_shape[-1], 512), dtype=torch.float32,
                                          device=self.ppo_device)
         self._latent_text_idx = torch.zeros((batch_shape[-1],), dtype=torch.long, device=self.ppo_device)
-
 
         return
 
