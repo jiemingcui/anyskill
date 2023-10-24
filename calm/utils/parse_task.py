@@ -35,17 +35,21 @@ from env.tasks.humanoid_clip import HumanoidHeading
 from env.tasks.humanoid_location import HumanoidLocation
 # from env.tasks.humanoid_vlip_con
 # ditioned import HumanoidHeadingConditioned
-# from env.tasks.humanoid_clip_conditioned import HumanoidHeadingConditioned
+from env.tasks.humanoid_clip_conditioned import HumanoidHeadingConditioned
 # from env.tasks.humanoid_clips_conditioned_back import HumanoidHeadingConditioned
 
 # from env.tasks.humanoid_clips_conditioned import HumanoidHeadingConditioned
 # from env.tasks.humanoid_clips_location import HumanoidLocationConditioned
 
 # from env.tasks.humanoid_vlip_conditioned import HumanoidHeadingConditioned
-# from env.tasks.humanoid_mlip_conditioned_headless import HumanoidHeadingConditioned
-from env.tasks.humanoid_mlips_conditioned import HumanoidHeadingConditioned
+# from env.tasks.humanoid_mlip_conditioned_headless import HumanoidLocationConditionedHeadless
+from env.tasks.humanoid_mlip_location_headless import HumanoidLocationConditionedHeadless
+# from env.tasks.humanoid_mlips_conditioned import HumanoidHeadingConditioned
 from env.tasks.humanoid_mlips_conditioned_1 import HumanoidHeadingConditioned1
 from env.tasks.humanoid_mlips_location import HumanoidLocationConditioned
+from env.tasks.humanoid_mlips_text_and_render import HumanoidLocationConditionedRender
+from env.tasks.humanoid_mlips_location_1 import HumanoidLocationConditioned1
+from env.tasks.humanoid_mlips_location_2 import HumanoidLocationConditioned2
 
 # from env.tasks.humanoid_heading_conditioned import HumanoidHeadingConditioned
 # from env.tasks.humanoid_clip import HumanoidLocation

@@ -66,31 +66,54 @@ class HRLAgent(common_agent.CommonAgent):
         obs = self.obs['obs']
         self._llc_actions = torch.zeros([self._llc_steps, 1024, 28], device=self.device, dtype=torch.float32)
         rewards = 0.0
+
+        rew_pos = 0.0
+        rew_vel = 0.0
+        rew_face = 0.0
+        rew_clip = 0.0
+
         disc_rewards = 0.0
         done_count = 0.0
         terminate_count = 0.0
         for t in range(self._llc_steps): #low-level controller sample 5
             llc_actions = self._compute_llc_action(obs, actions)
             obs, curr_rewards, curr_dones, infos = self.vec_env.step(llc_actions)
+
             # np.save("./output/llc_actions_{}.npy".format(), llc_actions.data.cpu().numpy())
             self._llc_actions[t] = llc_actions
             rewards += curr_rewards
             done_count += curr_dones
             terminate_count += infos['terminate']
-            
             amp_obs = infos['amp_obs']
             curr_disc_reward = self._calc_disc_reward(amp_obs)
             disc_rewards += curr_disc_reward
 
         rewards /= self._llc_steps
         disc_rewards /= self._llc_steps
-
         dones = torch.zeros_like(done_count)
         dones[done_count > 0] = 1.0
         terminate = torch.zeros_like(terminate_count)
         terminate[terminate_count > 0] = 1.0
         infos['terminate'] = terminate
         infos['disc_rewards'] = disc_rewards
+
+        self.writer.add_scalar('reward/rew_vel', torch.mean(self.vec_env.env.task.rew_vel), self.frame)
+        self.writer.add_scalar('reward/rew_pos', torch.mean(self.vec_env.env.task.rew_pos), self.frame)
+        self.writer.add_scalar('reward/rew_face', torch.mean(self.vec_env.env.task.rew_face), self.frame)
+        self.writer.add_scalar('reward/rew_clip', torch.mean(self.vec_env.env.task.rew_clip), self.frame)
+        self.writer.add_scalar('reward/similarity', torch.mean(self.vec_env.env.task._similarity), self.frame)
+        self.writer.add_scalar('reward/ce_dis', torch.mean(self.vec_env.env.task._cos_dis), self.frame)
+        # self.writer.add_scalar('reward/img_clip', self.vec_env.env.task.img_clip, self.frame)
+
+        if self.frame >= 100000:
+            np.save("./output/motion_feature_heading_kick.npy", self.vec_env.env.task.motionclip_features)
+            np.save("./output/image_feature_heading_kick.npy", self.vec_env.env.task.clip_features)
+            print('OUTPUT THE KICK TRAINING DATA!')
+
+        infos['rew_vel'] = rew_vel
+        infos['rew_pos'] = rew_pos
+        infos['rew_face'] = rew_face
+        infos['rew_clip'] = rew_clip
 
         if self.is_tensor_obses:
             if self.value_size == 1:
@@ -137,7 +160,8 @@ class HRLAgent(common_agent.CommonAgent):
 
             self.obs, rewards, self.dones, infos, _llc_actions = self.env_step(res_dict['actions'])
 
-            np.save("./output/llc_actions_{}.npy".format("1"), _llc_actions.data.cpu().numpy())
+
+            # np.save("./output/llc_actions_{}.npy".format("1"), _llc_actions.data.cpu().numpy())
 
 
             shaped_rewards = self.rewards_shaper(rewards)

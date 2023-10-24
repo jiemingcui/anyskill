@@ -52,8 +52,8 @@ class BaseTask:
         self.control_freq_inv = cfg["env"].get("controlFrequencyInv", 1)
 
         self.camera_props = gymapi.CameraProperties()
-        self.camera_props.width = 256
-        self.camera_props.height = 256
+        self.camera_props.width = 224
+        self.camera_props.height = 224
         self.camera_props.enable_tensors = True
 
         # optimization flags for pytorch JIT
@@ -65,6 +65,19 @@ class BaseTask:
             (self.num_envs, self.num_obs), device=self.device, dtype=torch.float)
         self.states_buf = torch.zeros(
             (self.num_envs, self.num_states), device=self.device, dtype=torch.float)
+
+        self.img_clip = torch.zeros(
+            1, device=self.device, dtype=torch.float)
+
+        self.rew_pos = torch.zeros(
+            self.num_envs, device=self.device, dtype=torch.float)
+        self.rew_vel = torch.zeros(
+            self.num_envs, device=self.device, dtype=torch.float)
+        self.rew_face = torch.zeros(
+            self.num_envs, device=self.device, dtype=torch.float)
+        self.rew_clip = torch.zeros(
+            self.num_envs, device=self.device, dtype=torch.float)
+
         self.rew_buf = torch.zeros(
             self.num_envs, device=self.device, dtype=torch.float)
         self.reset_buf = torch.ones(

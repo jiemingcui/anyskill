@@ -25,23 +25,13 @@ def evaluation(img_emb, motion_emb, matching_score_sum, top_k_count, all_size):
 def anytest():
     # args = test_options()
 
-    # need preprocess for the motion_raw files
-    movement_encoder = MovementEncoderBuild(
-        # input_size=args.dim_pose,
-        # hidden_size=args.dim_movement_enc_hidden,
-        # output_size=args.dim_movement_latent,
-        input_size=13,
-        hidden_size=512,
-        output_size=512,
-    )
     motion_encoder = MotionEncoderBuild(
-        input_size=512,
         hidden_size=1024,
         output_size=512,
         device="cuda:0"
     )
 
-    evaluator = MotionImgEvaluator(motion_encoder, movement_encoder)
+    evaluator = MotionImgEvaluator(motion_encoder)
 
     return evaluator
 
