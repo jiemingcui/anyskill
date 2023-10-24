@@ -29,35 +29,23 @@
 from env.tasks.humanoid import Humanoid
 from env.tasks.humanoid_amp import HumanoidAMP
 from env.tasks.humanoid_amp_getup import HumanoidAMPGetup
-from env.tasks.humanoid_amp_getup_anyskill import HumanoidAMPGetupAnySKill
-
-from env.tasks.humanoid_clip import HumanoidHeading
-# from env.tasks.humanoid_heading import HumanoidHeading
-from env.tasks.humanoid_location import HumanoidLocation
-# from env.tasks.humanoid_vlip_con
-# ditioned import HumanoidHeadingConditioned
-# from env.tasks.humanoid_clip_conditioned import HumanoidHeadingConditioned
-# from env.tasks.humanoid_clips_conditioned_back import HumanoidHeadingConditioned
-
-# from env.tasks.humanoid_clips_conditioned import HumanoidHeadingConditioned
-# from env.tasks.humanoid_clips_location import HumanoidLocationConditioned
-
-# from env.tasks.humanoid_vlip_conditioned import HumanoidHeadingConditioned
-# from env.tasks.humanoid_mlip_conditioned_headless import HumanoidHeadingConditioned
-from env.tasks.humanoid_mlips_conditioned import HumanoidHeadingConditioned
-from env.tasks.humanoid_mlips_conditioned_1 import HumanoidHeadingConditioned1
-from env.tasks.humanoid_mlips_location import HumanoidLocationConditioned
-
-# from env.tasks.humanoid_heading_conditioned import HumanoidHeadingConditioned
-# from env.tasks.humanoid_clip import HumanoidLocation
-from env.tasks.humanoid_location import HumanoidLocation
-from env.tasks.humanoid_strike import HumanoidStrike
-from env.tasks.humanoid_reach import HumanoidReach
-from env.tasks.humanoid_perturb import HumanoidPerturb
-from env.tasks.humanoid_block import HumanoidBlock
-from env.tasks.humanoid_view_motion import HumanoidViewMotion
-from env.tasks.humanoid_strike_fsm import HumanoidStrikeFSM
-from env.tasks.humanoid_location_fsm import HumanoidLocationFSM
+from env.tasks.humanoid_mlp_anyskill import HumanoidMLPAnySKill
+from env.tasks.humanoid_render_anyskill import HumanoidRenderAnySKill
+#
+# from env.tasks.humanoid_clip import HumanoidHeading
+# # from env.tasks.humanoid_heading import HumanoidHeading
+# from env.tasks.humanoid_location import HumanoidLocation
+# # from env.tasks.humanoid_vlip_con
+# # ditioned import HumanoidHeadingConditioned
+#
+# from env.tasks.humanoid_location import HumanoidLocation
+# from env.tasks.humanoid_strike import HumanoidStrike
+# from env.tasks.humanoid_reach import HumanoidReach
+# from env.tasks.humanoid_perturb import HumanoidPerturb
+# from env.tasks.humanoid_block import HumanoidBlock
+# from env.tasks.humanoid_view_motion import HumanoidViewMotion
+# from env.tasks.humanoid_strike_fsm import HumanoidStrikeFSM
+# from env.tasks.humanoid_location_fsm import HumanoidLocationFSM
 from env.tasks.vec_task_wrappers import VecTaskPythonWrapper
 
 from isaacgym import rlgpu

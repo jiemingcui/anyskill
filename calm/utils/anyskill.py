@@ -1,3 +1,4 @@
+import wandb
 import time
 import torch
 import argparse
@@ -23,6 +24,7 @@ def evaluation(img_emb, motion_emb, matching_score_sum, top_k_count, all_size):
 
 def anytest():
     # args = test_options()
+
     motion_encoder = MotionEncoderBuild(
         hidden_size=512,
         output_size=512,
