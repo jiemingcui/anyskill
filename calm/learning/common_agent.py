@@ -252,6 +252,7 @@ class CommonAgent(a2c_continuous.A2CAgent):
         train_info['play_time'] = play_time
         train_info['update_time'] = update_time
         train_info['total_time'] = total_time
+
         self._record_train_batch_info(batch_dict, train_info)
 
         return train_info

@@ -249,7 +249,7 @@ def get_args(benchmark=False):
          "help": ""},
         {"name": "--track", "action": "store_true", "default": False,
          "help": "Track training using weights and biases"},
-        {"name": "--wandb_project_name", "type": str, "default": "general_policy",
+        {"name": "--wandb_project_name", "type": str, "default": "reward_search",
          "help": "Name of the weights and biases project."},
         {"name": "--wandb_run_name", "type": str, "default": "default",
          "help": "Name of the weights and biases project."},
@@ -261,6 +261,8 @@ def get_args(benchmark=False):
          "help": "In test, interpolate latents."},
         {"name": "--random_latents", "action": "store_true", "default": False,
          "help": "In test, sample random latents."},
+        {"name": "--caption", "type": str, "default": "stand_straight",
+         "help": "In training, provide the caption of CLIP"},
         {"name": "--text_file", "type": str, "default": "stand_straight",
          "help": "In training, provide the caption file of CLIP"},
     ]
