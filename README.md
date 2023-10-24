@@ -32,14 +32,14 @@ python calm/run_iter.py --test --task HumanoidAMPGetup --num_envs 16 --cfg_env c
 #### High-level controller
 
 ```
-python calm/run_iter.py --cfg_env calm/data/cfg/humanoid_clip.yaml --cfg_train calm/data/cfg/train/rlg/hrl_humanoid_style_control.yaml --motion_file ./motions/motions_155.yaml --llc_checkpoint [path_to_calm_checkpoint] --track --caption put_hands_down
+python calm/run_iter.py --cfg_env calm/data/cfg/humanoid_clip.yaml --cfg_train calm/data/cfg/train/rlg/hrl_anyskill.yaml --motion_file ./motions/motions_155.yaml --llc_checkpoint [path_to_calm_checkpoint] --track --caption put_hands_down
 ```
 `--llc_checkpoint` specifies the checkpoint to use for the low-level controller. A pre-trained CALM low-level
 controller is available in `calm/data/models/calm_llc_reallusion_sword_shield.pth`.
 
 To test a trained model, use the following command:
 ```
-python calm/run_inter.py --test --task HumanoidLocationConditioned --num_envs 16 --cfg_env calm/data/cfg/humanoid_sword_shield_heading_conditioned.yaml --cfg_train calm/data/cfg/train/rlg/hrl_humanoid.yaml --motion_file ./motions/motions_155.yaml --llc_checkpoint [path_to_llc_checkpoint] --checkpoint [path_to_hlc_checkpoint]
+python calm/run_inter.py --test --task HumanoidLocationConditioned --num_envs 16 --cfg_env calm/data/cfg/humanoid_sword_shield_heading_conditioned.yaml --cfg_train calm/data/cfg/train/rlg/hrl_anyskill.yaml --motion_file ./motions/motions_155.yaml --llc_checkpoint [path_to_llc_checkpoint] --checkpoint [path_to_hlc_checkpoint]
 ```
 
 &nbsp;
