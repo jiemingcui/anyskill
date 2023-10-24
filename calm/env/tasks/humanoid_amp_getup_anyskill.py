@@ -33,7 +33,6 @@ from isaacgym import gymtorch
 from env.tasks.humanoid_amp_getup import HumanoidAMPGetup
 from isaacgym.torch_utils import *
 
-
 class HumanoidAMPGetupAnySKill(HumanoidAMPGetup):
     def __init__(self, cfg, sim_params, physics_engine, device_type, device_id, headless):
         
@@ -66,6 +65,9 @@ class HumanoidAMPGetupAnySKill(HumanoidAMPGetup):
 
         self._tar_speed = torch.ones([self.num_envs], device=self.device, dtype=torch.float)
         self._heading_change_steps = torch.zeros([self.num_envs], device=self.device, dtype=torch.int64)
+        self._similarity = torch.zeros([self.num_envs], device=self.device, dtype=torch.float32)
+        self._punish_count = torch.zeros([self.num_envs], device=self.device, dtype=torch.int)
+        self._terminate_count = torch.zeros([self.num_envs], device=self.device, dtype=torch.int)
 
         return
 
@@ -77,7 +79,7 @@ class HumanoidAMPGetupAnySKill(HumanoidAMPGetup):
         humanoid_obs = self._compute_humanoid_obs(env_ids)
 
         anyskill_obs = torch.zeros((humanoid_obs.shape[0], 512), device=self.device)
-        obs = torch.cat([humanoid_obs, anyskill_obs], dim=-1)  # 用0先占位
+        obs = torch.cat([humanoid_obs, anyskill_obs], dim=-1)
         # obs = humanoid_obs
         if (env_ids is None):
             self.obs_buf[:] = obs
@@ -141,11 +143,15 @@ class HumanoidAMPGetupAnySKill(HumanoidAMPGetup):
         recovery_mask = torch.bernoulli(recovery_probs) == 1.0
         terminated_mask = (self._terminate_buf[env_ids] == 1)
         recovery_mask = torch.logical_and(recovery_mask, terminated_mask)
-
         recovery_ids = env_ids[recovery_mask]
+
         if len(recovery_ids) > 0:
             self._reset_recovery_episode(recovery_ids)
-            
+
+        terminated_mask_clip = (self._terminate_count[env_ids] > 5)
+        recovery_ids_clip = env_ids[terminated_mask_clip]
+        if len(recovery_ids_clip) > 0:
+            self._reset_recovery_episode(recovery_ids_clip)
 
         nonrecovery_ids = env_ids[torch.logical_not(recovery_mask)]
         fall_probs = to_torch(np.array([self._fall_init_prob] * nonrecovery_ids.shape[0]), device=self.device)
@@ -153,7 +159,6 @@ class HumanoidAMPGetupAnySKill(HumanoidAMPGetup):
         fall_ids = nonrecovery_ids[fall_mask]
         if len(fall_ids) > 0:
             self._reset_fall_episode(fall_ids)
-            
 
         nonfall_ids = nonrecovery_ids[torch.logical_not(fall_mask)]
         if len(nonfall_ids) > 0:
@@ -199,20 +204,21 @@ class HumanoidAMPGetupAnySKill(HumanoidAMPGetup):
         is_recovery = self._recovery_counter > 0
         self.reset_buf[is_recovery] = 0
         self._terminate_buf[is_recovery] = 0
+        self._terminate_count[is_recovery] = 0
         return
 
     def compute_anyskill_reward(self, img_features_norm, text_features_norm, corresponding_id):
 
-        similarity_m = (100.0 * torch.matmul(img_features_norm, text_features_norm.permute(1, 0))).squeeze()
+        similarity_m = (torch.matmul(img_features_norm, text_features_norm.permute(1, 0))).squeeze()
         rows = torch.arange(corresponding_id.size(0))
         similarity = similarity_m[rows, corresponding_id]
+        delta = similarity - self._similarity
+        punish_mask = delta < 0
+        self._punish_count[punish_mask] += 1
+        self._similarity = similarity_m[rows, corresponding_id]
 
-        clip_err_scale = 0.15
-        clip_reward_w = 0.98
-        sim_mask = similarity <= 22
-        similarity[sim_mask] = 0
-        # similarity_bar = torch.mean(similarity)
-        clip_reward = torch.exp(clip_err_scale * similarity)
+        clip_reward = delta
+        clip_reward_w = 0.8
         return clip_reward_w * clip_reward
 
     def _update_task(self):
@@ -220,6 +226,12 @@ class HumanoidAMPGetupAnySKill(HumanoidAMPGetup):
         rest_env_ids = reset_task_mask.nonzero(as_tuple=False).flatten()
         if len(rest_env_ids) > 0:
             self._reset_task(rest_env_ids)
+
+        reset_clip_mask = self._punish_count > 10
+        reset_clip_id = reset_clip_mask.nonzero(as_tuple=False).flatten()
+        if len(reset_clip_id) > 0:
+            self._reset_task(reset_clip_id)
+            self._terminate_count += 1
         return
 
     def _compute_reward(self, actions):
@@ -229,6 +241,7 @@ class HumanoidAMPGetupAnySKill(HumanoidAMPGetup):
         return
 
     def _reset_task(self, env_ids):
+        #
         n = len(env_ids)
         if self._enable_rand_heading:
             rand_theta = 2 * np.pi * torch.rand(n, device=self.device) - np.pi
@@ -249,6 +262,7 @@ class HumanoidAMPGetupAnySKill(HumanoidAMPGetup):
         self._tar_dir[env_ids] = tar_dir
         self._tar_facing_dir[env_ids] = face_tar_dir
         self._heading_change_steps[env_ids] = self.progress_buf[env_ids] + change_steps
+        self._punish_count[env_ids] = 0
         return
 
 

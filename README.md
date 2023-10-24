@@ -1,4 +1,4 @@
-# Anyskill for physical natural motions
+# Anyskill for open-vocabulary physical natural motions
 
 ### Installation
 

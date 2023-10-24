@@ -60,6 +60,15 @@ class BaseTask:
         torch._C._jit_set_profiling_mode(False)
         torch._C._jit_set_profiling_executor(False)
 
+        self.rew_pos = torch.zeros(
+            self.num_envs, device=self.device, dtype=torch.float)
+        self.rew_vel = torch.zeros(
+            self.num_envs, device=self.device, dtype=torch.float)
+        self.rew_face = torch.zeros(
+            self.num_envs, device=self.device, dtype=torch.float)
+        self.rew_clip = torch.zeros(
+            self.num_envs, device=self.device, dtype=torch.float)
+
         # allocate buffers
         self.obs_buf = torch.zeros(
             (self.num_envs, self.num_obs), device=self.device, dtype=torch.float)
