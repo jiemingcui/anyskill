@@ -26,7 +26,7 @@ def anytest():
     # args = test_options()
 
     motion_encoder = MotionEncoderBuild(
-        hidden_size=1024,
+        hidden_size=512,
         output_size=512,
         device="cuda:0"
     )

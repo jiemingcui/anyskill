@@ -52,8 +52,8 @@ class BaseTask:
         self.control_freq_inv = cfg["env"].get("controlFrequencyInv", 1)
 
         self.camera_props = gymapi.CameraProperties()
-        self.camera_props.width = 256
-        self.camera_props.height = 256
+        self.camera_props.width = 224
+        self.camera_props.height = 224
         self.camera_props.enable_tensors = True
 
         # optimization flags for pytorch JIT

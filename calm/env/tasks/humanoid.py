@@ -293,14 +293,14 @@ class Humanoid(BaseTask):
         self.dof_limits_upper = []
 
         self.camera_props = gymapi.CameraProperties()
-        self.camera_props.width = 256
-        self.camera_props.height = 256
+        self.camera_props.width = 224
+        self.camera_props.height = 224
         self.camera_props.enable_tensors = True
 
         for i in range(self.num_envs):
             # create env instance
             env_ptr = self.gym.create_env(self.sim, lower, upper, num_per_row)
-            self._build_env(i, env_ptr, humanoid_asset)
+            self._build_env(i, env_ptr, humanoid_asset)  # add camera handle
             self.envs.append(env_ptr)
 
         dof_prop = self.gym.get_actor_dof_properties(self.envs[0], self.humanoid_handles[0])

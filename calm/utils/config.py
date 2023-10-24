@@ -263,6 +263,8 @@ def get_args(benchmark=False):
          "help": "In test, sample random latents."},
         {"name": "--caption", "type": str, "default": "stand_straight",
          "help": "In training, provide the caption of CLIP"},
+        {"name": "--text_file", "type": str, "default": "stand_straight",
+         "help": "In training, provide the caption file of CLIP"},
     ]
 
     if benchmark:

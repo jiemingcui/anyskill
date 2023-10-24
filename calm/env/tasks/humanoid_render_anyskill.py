@@ -34,7 +34,7 @@ from env.tasks.humanoid_amp_getup import HumanoidAMPGetup
 from isaacgym.torch_utils import *
 
 
-class HumanoidAMPGetupAnySKill(HumanoidAMPGetup):
+class HumanoidRenderAnySKill(HumanoidAMPGetup):
     def __init__(self, cfg, sim_params, physics_engine, device_type, device_id, headless):
         
         self._recovery_episode_prob = cfg["env"]["recoveryEpisodeProb"]
