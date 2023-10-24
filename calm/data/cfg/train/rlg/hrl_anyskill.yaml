@@ -54,11 +54,11 @@ params:
     learning_rate: 2e-5
     lr_schedule: constant
     score_to_win: 20000
-    max_epochs: 380
+    max_epochs: 100
 #    max_epochs: 10000
-    save_best_after: 300
-    save_frequency: 20
-    save_intermediate: False
+    save_best_after: 5
+    save_frequency: 5
+    save_intermediate: True
 
     print_stats: True
     grad_norm: 1.0
@@ -79,7 +79,7 @@ params:
     disc_reward_w: 0
     style_reward_w: 0.4
 
-    llc_steps: 3
-#    llc_steps: 5
+#    llc_steps: 3
+    llc_steps: 5
     llc_config: calm/data/cfg/train/rlg/calm_humanoid.yaml
 
