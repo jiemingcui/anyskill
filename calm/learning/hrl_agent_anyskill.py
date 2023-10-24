@@ -31,6 +31,7 @@ from gym import spaces
 import numpy as np
 import os
 import yaml
+import wandb
 
 from rl_games.common import a2c_common
 
@@ -88,6 +89,9 @@ class HRLAgentAnyskill(common_agent.CommonAgent):
             image_features_norm = image_features / image_features.norm(dim=-1, keepdim=True)
 
             anyskill_rewards = self.vec_env.env.task.compute_anyskill_reward(image_features_norm, self._text_latents, self._latent_text_idx)
+            wandb.log({'reward/rew_anyskill': torch.mean(anyskill_rewards)}, step=self.frame)
+            wandb.log({'reward/rew_aux', torch.mean(aux_rewards)}, step=self.frame)
+
             self.writer.add_scalar('reward/rew_clip', torch.mean(anyskill_rewards), self.frame)
             self.writer.add_scalar('reward/rew_aux', torch.mean(aux_rewards), self.frame)
 

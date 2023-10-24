@@ -249,7 +249,7 @@ def get_args(benchmark=False):
          "help": ""},
         {"name": "--track", "action": "store_true", "default": False,
          "help": "Track training using weights and biases"},
-        {"name": "--wandb_project_name", "type": str, "default": "amp_training",
+        {"name": "--wandb_project_name", "type": str, "default": "general_policy",
          "help": "Name of the weights and biases project."},
         {"name": "--wandb_run_name", "type": str, "default": "default",
          "help": "Name of the weights and biases project."},
