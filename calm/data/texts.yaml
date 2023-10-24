@@ -1,7 +1,5 @@
 texts:
- - weight: 0.3333
-   text: "put hands up"
- - weight: 0.3333
-   text: "put hands down"
- - weight: 0.3333
-   text: "arm lift"
+ - weight: 0.5
+   text: "raise one arm"
+ - weight: 0.5
+   text: "fold one arm over the other"

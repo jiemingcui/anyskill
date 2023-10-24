@@ -30,11 +30,11 @@ class MotionEncoderBuild(nn.Module):
         self.device = device
         self.main = nn.Sequential(
             nn.Flatten(),  # Flatten the input to [1, 15*3]
-            nn.Linear(15 * 3, hidden_size*2),  # Input layer: 15*3 input features, 256 output features
+            nn.Linear(15 * 3, hidden_size),  # Input layer: 15*3 input features, 256 output features
             nn.ReLU(),  # ReLU activation function
-            nn.Linear(hidden_size*2, hidden_size),  # Hidden layer: 256 input features, 512 output features
-            nn.ReLU(),  # ReLU activation function
-            nn.Linear(hidden_size, output_size)  # Output layer: 512 input features, 512 output features
+            nn.Linear(hidden_size, output_size),  # Hidden layer: 256 input features, 512 output features
+            # nn.ReLU(),  # ReLU activation function
+            # nn.Linear(hidden_size*2, output_size)  # Output layer: 512 input features, 512 output features
         )
 
         self.main.apply(init_weight)
@@ -47,7 +47,7 @@ class MotionEncoderBuild(nn.Module):
 
 # ================================================= Evaluator =================================================
 class MotionImgEvaluator():
-    def __init__(self, motion_encoder, movement_encoder):
+    def __init__(self, motion_encoder):
         self.device = "cuda:0"
         self.motion_encoder = motion_encoder
 
@@ -71,7 +71,7 @@ class MotionImgEvaluator():
 class TextToFeature:
     def __init__(self):
         self.mlip_model, _, self.mlip_preprocess = open_clip.create_model_and_transforms('ViT-B-32',
-                                                                                         pretrained='./pretrained/open_clip_pytorch_model.bin')
+                                                                                         pretrained='laion2b_s34b_b79k')
         self.tokenizer = open_clip.get_tokenizer('ViT-B-32')
 
     def encode_texts(self, texts):

@@ -82,7 +82,7 @@ class HRLAgentAnyskill(common_agent.CommonAgent):
 
             obs, aux_rewards, curr_dones, infos = self.vec_env.step(llc_actions)
             obs[..., self.obs_shape[0] - self._task_size:] = self._text_latents
-            state_embeds = infos['state_embeds']
+            state_embeds = infos['state_embeds'][:, :15, :3]
 
             image_features = self.anyskill.get_motion_embedding(state_embeds)
             image_features_norm = image_features / image_features.norm(dim=-1, keepdim=True)

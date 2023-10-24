@@ -41,6 +41,7 @@ from learning import amp_network_builder
 
 from learning import hrl_conditioned_agent
 from learning import hrl_agent_anyskill
+from learning import hrl_players_anyskill
 
 from learning import hrl_fsm_players
 
@@ -218,6 +219,7 @@ def build_alg_runner(algo_observer):
     runner.model_builder.model_factory.register_builder('hrl_anyskill', lambda network, **kwargs: hrl_models.ModelHRLContinuous(network))
     runner.algo_factory.register_builder('hrl_anyskill', lambda **kwargs: hrl_agent_anyskill.HRLAgentAnyskill(**kwargs))
     runner.model_builder.network_factory.register_builder('hrl_anyskill', lambda **kwargs: hrl_network_builder_anyskill.HRLBuilder())
+    runner.player_factory.register_builder('hrl_anyskill', lambda **kwargs: hrl_players_anyskill.HRLAnyskillPlayer(**kwargs))
 
     runner.algo_factory.register_builder('calm', lambda **kwargs: calm_agent.CALMAgent(**kwargs))
     runner.player_factory.register_builder('calm', lambda **kwargs: calm_players.CALMPlayer(**kwargs))
