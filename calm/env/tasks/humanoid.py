@@ -340,10 +340,6 @@ class Humanoid(BaseTask):
         self.gym.set_camera_location(camera_handle, env_ptr, gymapi.Vec3(1.2, 1.3, 0.5), gymapi.Vec3(-0.5, 0.7, -0.5))
         self.camera_handles.append(camera_handle)
 
-        camera_rgba_tensor = self.gym.get_camera_image_gpu_tensor(self.sim, env_ptr, camera_handle, gymapi.IMAGE_COLOR)
-        self.torch_rgba_tensor[env_id] = gymtorch.wrap_tensor(camera_rgba_tensor)[:,:,:3].float() # [224,224,3] -> IM -> [env,224,224,3]
-
-
         self.gym.enable_actor_dof_force_sensors(env_ptr, humanoid_handle)
 
         for j in range(self.num_bodies):

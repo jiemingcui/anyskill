@@ -202,11 +202,7 @@ class HumanoidMLPAnySKill(HumanoidAMPGetup):
         return
 
     def compute_anyskill_reward(self, img_features_norm, text_features_norm, corresponding_id):
-        similarity_new = 100 * torch.einsum('ij,ij->i', img_features_norm, text_features_norm[corresponding_id])
-
-        similarity_m = (100.0 * torch.matmul(img_features_norm, text_features_norm.permute(1, 0))).squeeze()
-        rows = torch.arange(corresponding_id.size(0))
-        similarity = similarity_m[rows, corresponding_id]
+        similarity = 100 * torch.einsum('ij,ij->i', img_features_norm, text_features_norm[corresponding_id])
 
         clip_err_scale = 0.15
         clip_reward_w = 0.98

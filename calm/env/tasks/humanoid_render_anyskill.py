@@ -68,7 +68,7 @@ class HumanoidRenderAnySKill(HumanoidAMPGetup):
         self._heading_change_steps = torch.zeros([self.num_envs], device=self.device, dtype=torch.int64)
         self._similarity = torch.zeros([self.num_envs], device=self.device, dtype=torch.float32)
         self._punish_count = torch.zeros([self.num_envs], device=self.device, dtype=torch.int)
-        # self._frame = 0
+        # self.torch_rgba_tensor = torch.zeros([self.num_envs, 224, 224, 3], device=self.device, dtype=torch.float32)
 
         return
 
@@ -92,19 +92,16 @@ class HumanoidRenderAnySKill(HumanoidAMPGetup):
                                   cam_pos[2])
 
                 self.gym.viewer_camera_look_at(self.viewer, None, pos, target)
-                camera_handle = self.camera_handles[env_id]
                 pos_nearer = gymapi.Vec3(pos.x + 1.2, pos.y + 1.2, pos.z)
-
-                self.gym.set_camera_location(camera_handle, self.envs[env_id], pos_nearer, target)
+                self.gym.set_camera_location(self.camera_handles[env_id], self.envs[env_id], pos_nearer, target)
 
             self.gym.render_all_camera_sensors(self.sim)
             self.gym.start_access_image_tensors(self.sim)
 
             for env_id in range(self.num_envs):
-
-                camera_rgba_tensor = self.gym.get_camera_image_gpu_tensor(self.sim, self.envs[env_id], camera_handle,
+                camera_rgba_tensor = self.gym.get_camera_image_gpu_tensor(self.sim, self.envs[env_id], self.camera_handles[env_id],
                                                                           gymapi.IMAGE_COLOR)
-                torch_rgba_tensor = gymtorch.wrap_tensor(camera_rgba_tensor)
+                self.torch_rgba_tensor[env_id] = gymtorch.wrap_tensor(camera_rgba_tensor)[:, :, :3].float()  # [224,224,3] -> IM -> [env,224,224,3]
 
             print("time of render {} frames' image: {}".format(env_id, (time.time() - start)))
 
@@ -112,8 +109,6 @@ class HumanoidRenderAnySKill(HumanoidAMPGetup):
 
         return self.torch_rgba_tensor.permute(0, 3, 1, 2)
 
-        # else:
-        #     return torch.zeros([self.num_envs, 224, 224, 3], device=self.device, dtype=torch.float32)
 
     def get_task_obs_size(self):
         obs_size = 512  # dim for text_latents
@@ -247,10 +242,7 @@ class HumanoidRenderAnySKill(HumanoidAMPGetup):
         return
 
     def compute_anyskill_reward(self, img_features_norm, text_features_norm, corresponding_id):
-
-        similarity_m = (100.0 * torch.matmul(img_features_norm, text_features_norm.permute(1, 0))).squeeze()
-        rows = torch.arange(corresponding_id.size(0))
-        similarity = similarity_m[rows, corresponding_id]
+        similarity = 100 * torch.einsum('ij,ij->i', img_features_norm, text_features_norm[corresponding_id])
 
         clip_err_scale = 0.15
         clip_reward_w = 0.98

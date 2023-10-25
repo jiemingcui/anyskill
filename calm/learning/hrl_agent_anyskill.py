@@ -43,7 +43,7 @@ import learning.calm_models as calm_models
 import learning.calm_network_builder as calm_network_builder
 from utils import anyskill
 
-RENDER = False
+RENDER = True
 
 class HRLAgentAnyskill(common_agent.CommonAgent):
     def __init__(self, base_name, config):
