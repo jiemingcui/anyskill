@@ -23,12 +23,8 @@ Over the course of training, the latest checkpoint `Humanoid.pth` will be regula
 along with a Tensorboard log. `--headless` is used to disable visualizations and `--track` is used for tracking using weights and biases. If you want to view the
 simulation, simply remove this flag. To test a trained model, use the following command:
 ```
-python calm/run_iter.py --test --task HumanoidRenderAnyskill --num_envs 16 --cfg_env calm/data/cfg/humanoid_clip.yaml --cfg_train calm/data/cfg/train/rlg/hrl_anyskill.yaml --motion_file ./motions/motions_155.yaml --checkpoint [path_to_calm_checkpoint]
+python calm/run_iter.py --test --task HumanoidAMPGetup --num_envs 16 --cfg_env calm/data/cfg/humanoid_calm_sword_shield_getup.yaml --cfg_train calm/data/cfg/train/rlg/calm_humanoid.yaml --motion_file ./motions/motions_155.yaml --checkpoint [path_to_calm_checkpoint]
 ```
-```
-python calm/run_iter.py --test --task HumanoidMLPAnyskill --num_envs 16 --cfg_env calm/data/cfg/humanoid_clip.yaml --cfg_train calm/data/cfg/train/rlg/hrl_anyskill.yaml --motion_file ./motions/motions_155.yaml --checkpoint [path_to_calm_checkpoint]
-```
-
 
 &nbsp;
 
@@ -42,11 +38,12 @@ controller is available in `calm/data/models/calm_llc_reallusion_sword_shield.pt
 
 To test a trained model, use the following command:
 ```
-python calm/run_inter.py --test --task HumanoidHeadingConditioned --num_envs 16 --cfg_env calm/data/cfg/humanoid_sword_shield_heading_conditioned.yaml --cfg_train calm/data/cfg/train/rlg/hrl_humanoid.yaml --motion_file ./motions/motions_155.yaml --llc_checkpoint [path_to_llc_checkpoint] --checkpoint [path_to_hlc_checkpoint]
+python calm/run_iter.py --test --task HumanoidRenderAnyskill --num_envs 16 --cfg_env calm/data/cfg/humanoid_clip.yaml --cfg_train calm/data/cfg/train/rlg/hrl_anyskill.yaml --motion_file ./motions/motions_155.yaml --checkpoint [path_to_calm_checkpoint]
 ```
-
+```
+python calm/run_iter.py --test --task HumanoidMLPAnyskill --num_envs 16 --cfg_env calm/data/cfg/humanoid_clip.yaml --cfg_train calm/data/cfg/train/rlg/hrl_anyskill.yaml --motion_file ./motions/motions_155.yaml --checkpoint [path_to_calm_checkpoint]
+```
 &nbsp;
-
 
 ### AMP
 
