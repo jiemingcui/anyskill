@@ -102,11 +102,13 @@ class HRLAgent(common_agent.CommonAgent):
         self.writer.add_scalar('reward/rew_face', torch.mean(self.vec_env.env.task.rew_face), self.frame)
         self.writer.add_scalar('reward/rew_clip', torch.mean(self.vec_env.env.task.rew_clip), self.frame)
         self.writer.add_scalar('reward/similarity', torch.mean(self.vec_env.env.task._similarity), self.frame)
+        self.writer.add_scalar('reward/ce_dis', torch.mean(self.vec_env.env.task._cos_dis), self.frame)
         # self.writer.add_scalar('reward/img_clip', self.vec_env.env.task.img_clip, self.frame)
 
-        # if self.frame >= 300000:
-        #     np.save("./output/motion_feature_location.npy", self.vec_env.env.task.motionclip_features)
-        #     np.save("./output/image_feature_location.npy", self.vec_env.env.task.clip_features)
+        if self.frame >= 100000:
+            np.save("./output/motion_feature_heading_kick.npy", self.vec_env.env.task.motionclip_features)
+            np.save("./output/image_feature_heading_kick.npy", self.vec_env.env.task.clip_features)
+            print('OUTPUT THE KICK TRAINING DATA!')
 
         infos['rew_vel'] = rew_vel
         infos['rew_pos'] = rew_pos

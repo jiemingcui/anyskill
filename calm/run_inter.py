@@ -40,15 +40,15 @@ from learning import amp_models
 from learning import amp_network_builder
 
 from learning import hrl_conditioned_agent
-from learning import hrl_agent_anyskill
-
 from learning import hrl_fsm_players
 
 from learning import hrl_agent
 from learning import hrl_players
 from learning import hrl_models
 from learning import hrl_network_builder
+from learning import hrl_agent_anyskill
 from learning import hrl_network_builder_anyskill
+from learning import Anyskill_players
 
 from learning import calm_agent
 from learning import calm_players
@@ -204,7 +204,6 @@ def build_alg_runner(algo_observer):
 
     runner.algo_factory.register_builder('hrl_conditioned', lambda **kwargs: hrl_conditioned_agent.HRLConditionedAgent(**kwargs))
 
-
     runner.player_factory.register_builder('hrl_fsm', lambda **kwargs: hrl_fsm_players.HRLFSMPlayer(**kwargs))
 
 
@@ -218,6 +217,7 @@ def build_alg_runner(algo_observer):
     runner.model_builder.model_factory.register_builder('hrl_anyskill', lambda network, **kwargs: hrl_models.ModelHRLContinuous(network))
     runner.algo_factory.register_builder('hrl_anyskill', lambda **kwargs: hrl_agent_anyskill.HRLAgentAnyskill(**kwargs))
     runner.model_builder.network_factory.register_builder('hrl_anyskill', lambda **kwargs: hrl_network_builder_anyskill.HRLBuilder())
+    runner.player_factory.register_builder('hrl_anyskill', lambda **kwargs: Anyskill_players.AnyskillPlayer(**kwargs))
 
     runner.algo_factory.register_builder('calm', lambda **kwargs: calm_agent.CALMAgent(**kwargs))
     runner.player_factory.register_builder('calm', lambda **kwargs: calm_players.CALMPlayer(**kwargs))
@@ -258,8 +258,8 @@ def main():
     # Create default directories for weights and statistics
     cfg_train['params']['config']['train_dir'] = args.output_path
 
-    cfg['env']['text_file'] = args.text_file
-    cfg_train['params']['config']['text_file'] = args.text_file
+    cfg['env']['caption'] = args.caption
+    cfg_train['params']['config']['caption'] = args.caption
 
     if args.track:
         wandb.init(
