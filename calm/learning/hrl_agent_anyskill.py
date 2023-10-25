@@ -43,7 +43,6 @@ import learning.calm_models as calm_models
 import learning.calm_network_builder as calm_network_builder
 from utils import anyskill
 
-RENDER = True
 
 class HRLAgentAnyskill(common_agent.CommonAgent):
     def __init__(self, base_name, config):
@@ -67,6 +66,7 @@ class HRLAgentAnyskill(common_agent.CommonAgent):
         self.anyskill = anyskill.anytest()
         self.mlip_encoder = anyskill.FeatureExtractor()
         self.text_file = config['text_file']
+        self.RENDER = config['render']
 
         return
 
@@ -84,7 +84,7 @@ class HRLAgentAnyskill(common_agent.CommonAgent):
             obs, aux_rewards, curr_dones, infos = self.vec_env.step(llc_actions)
             obs[..., self.obs_shape[0] - self._task_size:] = self._text_latents
 
-            if RENDER:
+            if self.RENDER:
                 images = self.vec_env.env.task.render()
                 image_features = self.mlip_encoder.encode_images(images)
             else:

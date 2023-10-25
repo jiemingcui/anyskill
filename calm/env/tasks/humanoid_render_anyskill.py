@@ -75,7 +75,7 @@ class HumanoidRenderAnySKill(HumanoidAMPGetup):
     def render(self, sync_frame_time=False):
         super(HumanoidRenderAnySKill, self).render()
         self._frame += 1
-        if self.frame > 150 and self.frame%30 == 1:
+        if self._frame > 150 and self._frame%30 == 1:
             self.gym.refresh_actor_root_state_tensor(self.sim)
             char_root_pos = self._humanoid_root_states[:, 0:3].cpu().numpy()
             char_root_rot = self._humanoid_root_states[:, 3:7].cpu().numpy()

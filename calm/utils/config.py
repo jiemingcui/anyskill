@@ -265,6 +265,8 @@ def get_args(benchmark=False):
          "help": "In training, provide the caption of CLIP"},
         {"name": "--text_file", "type": str, "default": "stand_straight",
          "help": "In training, provide the caption file of CLIP"},
+        {"name": "--render", "type": bool, "default": False,
+         "help": "Whether use the mode of render"},
     ]
 
     if benchmark:
