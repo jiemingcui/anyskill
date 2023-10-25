@@ -1,5 +1,7 @@
 texts:
- - weight: 0.5
-   text: "raise one arm"
- - weight: 0.5
-   text: "fold one arm over the other"
+ - weight: 0.3333333
+   text: "hands touching the ground"
+ - weight: 0.3333333
+   text: "takes a bow"
+ - weight: 0.3333333
+   text: "picks something up"
