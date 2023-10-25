@@ -43,6 +43,7 @@ import learning.calm_models as calm_models
 import learning.calm_network_builder as calm_network_builder
 from utils import anyskill
 
+RENDER = False
 
 class HRLAgentAnyskill(common_agent.CommonAgent):
     def __init__(self, base_name, config):
@@ -83,12 +84,13 @@ class HRLAgentAnyskill(common_agent.CommonAgent):
             obs, aux_rewards, curr_dones, infos = self.vec_env.step(llc_actions)
             obs[..., self.obs_shape[0] - self._task_size:] = self._text_latents
 
-            # state_embeds = infos['state_embeds'][:, :15, :3]
-            # image_features = self.anyskill.get_motion_embedding(state_embeds)
+            if RENDER:
+                images = self.vec_env.env.task.render()
+                image_features = self.mlip_encoder.encode_images(images)
+            else:
+                state_embeds = infos['state_embeds'][:, :15, :3]
+                image_features = self.anyskill.get_motion_embedding(state_embeds)
 
-            # Render
-            images = self.vec_env.env.task.render()
-            image_features = self.mlip_encoder.encode_images(images)
             image_features_norm = image_features / image_features.norm(dim=-1, keepdim=True)
             anyskill_rewards = self.vec_env.env.task.compute_anyskill_reward(image_features_norm, self._text_latents,
                                                                              self._latent_text_idx)
