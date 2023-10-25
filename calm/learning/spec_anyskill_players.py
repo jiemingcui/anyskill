@@ -1,47 +1,20 @@
-# Copyright (c) 2018-2022, NVIDIA Corporation
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#
-# 1. Redistributions of source code must retain the above copyright notice, this
-#    list of conditions and the following disclaimer.
-#
-# 2. Redistributions in binary form must reproduce the above copyright notice,
-#    this list of conditions and the following disclaimer in the documentation
-#    and/or other materials provided with the distribution.
-#
-# 3. Neither the name of the copyright holder nor the names of its
-#    contributors may be used to endorse or promote products derived from
-#    this software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 import copy
 from gym import spaces
 import numpy as np
 import os
 import torch 
 import yaml
-
+import threading
 from rl_games.algos_torch import players
 
 import learning.common_player as common_player
 import learning.calm_players as calm_players
 import learning.calm_models as calm_models
 import learning.calm_network_builder as calm_network_builder
+from utils import anyskill
 
-
-class HRLAnyskillPlayer(common_player.CommonPlayer):
+skill_command = "put up your hand"
+class SpecAnyskillPlayer(common_player.CommonPlayer):
     def __init__(self, config):
         with open(os.path.join(os.getcwd(), config['llc_config']), 'r') as f:
             llc_config = yaml.load(f, Loader=yaml.SafeLoader)
@@ -58,6 +31,12 @@ class HRLAnyskillPlayer(common_player.CommonPlayer):
         self._build_llc(llc_config_params, llc_checkpoint)
 
         self._target_motion_index = torch.zeros((self.env.task.num_envs, 1), dtype=torch.long, device=self.device)
+        self.anyskill = anyskill.anytest()
+        self.text_encoder = anyskill.TextToFeature()
+        self.text_latent = self.text_encoder.encode_texts([skill_command])
+        self.print_stats = False
+        self.skill_command = skill_command
+
 
         return
     
@@ -87,7 +66,7 @@ class HRLAnyskillPlayer(common_player.CommonPlayer):
         
         return clamped_actions
 
-    def run(self):
+    def run_anyskill(self):
         n_games = self.games_num
         render = self.render_env
         n_game_life = self.n_game_life
@@ -130,17 +109,22 @@ class HRLAnyskillPlayer(common_player.CommonPlayer):
             done_indices = []
 
             for n in range(self.max_steps):
-                obs_dict = self.env_reset(done_indices)
+                self.obs = self.env_reset(done_indices)
+                obs = self.obs['obs']
 
-                if has_masks:
-                    masks = self.env.get_action_mask()
-                    action = self.get_masked_action(obs_dict, masks, is_determenistic)
-                else:
-                    action = self.get_action(obs_dict, is_determenistic)
-                obs_dict, r, done, info = self.env_step(self.env, obs_dict, action)
+                global skill_command
+
+                if skill_command != self.skill_command:
+                    self.skill_command = skill_command
+                    self.text_latent = self.text_encoder.encode_texts([skill_command])
+
+
+                obs[..., self.obs_shape[0] - self._task_size:][:] = self.text_latent
+                action = self.get_action(self.obs, is_determenistic)
+                obs_dict, r, done, info = self.env_step(action)
                 cr += r
                 steps += 1
-  
+
                 self._post_step(info)
 
                 if render:
@@ -177,7 +161,7 @@ class HRLAnyskillPlayer(common_player.CommonPlayer):
                         if print_game_res:
                             print('reward:', cur_rewards/done_count, 'steps:', cur_steps/done_count, 'w:', game_res)
                         else:
-                            with open("./output/hrl_anyskill_reward.txt", "a") as f:
+                            with open("./output/hrl_reward.txt", "a") as f:
                                 f.write(str(cur_rewards/done_count) + "\n")
                                 f.close
                             print('reward:', cur_rewards/done_count, 'steps:', cur_steps/done_count)
@@ -185,28 +169,30 @@ class HRLAnyskillPlayer(common_player.CommonPlayer):
                     sum_game_res += game_res
                     if batch_size//self.num_agents == 1 or games_played >= n_games:
                         break
-        
+
                 done_indices = done_indices[:, 0]
 
-        print(sum_rewards)
-        if print_game_res:
-            print('av reward:', sum_rewards / games_played * n_game_life, 'av steps:', sum_steps / games_played * n_game_life, 'winrate:', sum_game_res / games_played * n_game_life)
-        else:
-            print('av reward:', sum_rewards / games_played * n_game_life, 'av steps:', sum_steps / games_played * n_game_life)
+        # # print(sum_rewards)
+        # if print_game_res:
+        #     print('av reward:', sum_rewards / games_played * n_game_life, 'av steps:', sum_steps / games_played * n_game_life, 'winrate:', sum_game_res / games_played * n_game_life)
+        # else:
+        #     print('av reward:', sum_rewards / games_played * n_game_life, 'av steps:', sum_steps / games_played * n_game_life)
 
         return
 
-    def env_step(self, env, obs_dict, action):
+    def env_step(self, action):
         if not self.is_tensor_obses:
             action = action.cpu().numpy()
 
-        obs = obs_dict['obs']
+        obs = self.obs['obs']
         rewards = 0.0
         done_count = 0.0
         disc_rewards = 0.0
         for t in range(self._llc_steps):
             llc_actions = self._compute_llc_action(obs, action)
-            obs, curr_rewards, curr_dones, infos = env.step(llc_actions)
+            obs, curr_rewards, curr_dones, infos = self.env.step(llc_actions)
+
+            obs[..., self.obs_shape[0] - self._task_size:][:] = self.text_latent
 
             rewards += curr_rewards
             done_count += curr_dones
@@ -293,3 +279,15 @@ class HRLAnyskillPlayer(common_player.CommonPlayer):
     def _calc_disc_reward(self, amp_obs):
         disc_reward = self._llc_agent._calc_disc_rewards(amp_obs)
         return disc_reward
+
+    def get_skill_command(self):
+        global skill_command
+        while True:
+            inputs = input("please input the command: ")
+            skill_command = inputs
+
+    def run(self):
+        skill_test = threading.Thread(target=self.get_skill_command)
+        skill_test.start()
+        self.run_anyskill()
+        return

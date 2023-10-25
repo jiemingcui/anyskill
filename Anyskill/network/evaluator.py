@@ -82,8 +82,4 @@ class FeatureExtractor():
         return text_features_norm
 
     def encode_images(self, images):
-        image_features = torch.zeros([images.shape[0], 512], device="cuda", dtype=torch.float32)
-        for i in range(images.shape[0]):
-            image_features[i] = self.mlip_model.encode_image(images[i].unsqueeze(0))
-
-        return image_features
+        return self.mlip_model.encode_image(images)

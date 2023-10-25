@@ -487,10 +487,11 @@ class Humanoid(BaseTask):
         return
 
     def render(self, sync_frame_time=False):
-        # if self.viewer:
-        #     self._update_camera()
+        if not self.RENDER:
+            # print("======= Here we apply pretrained network for motion prediction ======")
+            if self.viewer:
+                self._update_camera()
 
-        # # train
         super().render(sync_frame_time)
         return
 
@@ -526,7 +527,6 @@ class Humanoid(BaseTask):
 
     def _init_camera(self):
         self.gym.refresh_actor_root_state_tensor(self.sim)
-
         # change the setting to multi envs
         self._cam_prev_char_pos = torch.zeros([self.num_envs, 3], device=self.device, dtype=torch.float32)
         # self._cam_prev_char_pos = self._humanoid_root_states[0, 0:3].cpu().numpy()
@@ -537,15 +537,6 @@ class Humanoid(BaseTask):
         cam_target = gymapi.Vec3(self._cam_prev_char_pos[0, 0],
                                  self._cam_prev_char_pos[0, 1],
                                  1.0)
-        # # setting for only one env
-        # self._cam_prev_char_pos = self._humanoid_root_states[0, 0:3].cpu().numpy()
-        # cam_pos = gymapi.Vec3(self._cam_prev_char_pos[0],
-        #                       self._cam_prev_char_pos[1] - 3.0,
-        #                       1.0)
-        # cam_target = gymapi.Vec3(self._cam_prev_char_pos[0],
-        #                          self._cam_prev_char_pos[1],
-        #                          1.0)
-
         self.gym.viewer_camera_look_at(self.viewer, None, cam_pos, cam_target)
 
         return

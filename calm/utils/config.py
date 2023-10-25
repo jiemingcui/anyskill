@@ -256,8 +256,6 @@ def get_args(benchmark=False):
         {"name": "--latents_on_reset", "action": "store_true", "default": False,
          "help": "In test, sample latents only on reset."},
         {"name": "--interpolate_latents", "action": "store_true", "default": False,
-        #  "help": "In test, interpolate latents."},
-        # {"name": "--interpolate_latents", "action": "store_true", "default": True,
          "help": "In test, interpolate latents."},
         {"name": "--random_latents", "action": "store_true", "default": False,
          "help": "In test, sample random latents."},
@@ -265,8 +263,9 @@ def get_args(benchmark=False):
          "help": "In training, provide the caption of CLIP"},
         {"name": "--text_file", "type": str, "default": "stand_straight",
          "help": "In training, provide the caption file of CLIP"},
-        {"name": "--render", "type": bool, "default": False,
-         "help": "Whether use the mode of render"},
+        {"name": "--render", "action": "store_true", "default": False,
+         "help": "In train, whether to render the environment"},
+
     ]
 
     if benchmark:

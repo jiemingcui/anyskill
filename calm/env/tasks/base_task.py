@@ -115,6 +115,7 @@ class BaseTask:
         # todo: read from config
         self.enable_viewer_sync = True
         self.viewer = None
+        self.RENDER = cfg['env']['render']
 
         # if running with a viewer, set up keyboard shortcuts and camera
         if self.headless == False:
@@ -125,13 +126,6 @@ class BaseTask:
                 self.viewer, gymapi.KEY_ESCAPE, "QUIT")
             self.gym.subscribe_viewer_keyboard_event(
                 self.viewer, gymapi.KEY_V, "toggle_viewer_sync")
-
-            # # set camera handles
-            # camera_handle = self.gym.create_camera_sensor(env_ptr, self.camera_props)
-            # self.gym.set_camera_location(camera_handle, env_ptr, gymapi.Vec3(1.2, 1.3, 0.5),
-            #                              gymapi.Vec3(-0.5, 0.7, -0.5))
-            # self.camera_handles.append(camera_handle)
-
 
             # set the camera position based on up axis
             sim_params = self.gym.get_sim_params(self.sim)

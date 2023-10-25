@@ -1,31 +1,3 @@
-# Copyright (c) 2018-2022, NVIDIA Corporation
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#
-# 1. Redistributions of source code must retain the above copyright notice, this
-#    list of conditions and the following disclaimer.
-#
-# 2. Redistributions in binary form must reproduce the above copyright notice,
-#    this list of conditions and the following disclaimer in the documentation
-#    and/or other materials provided with the distribution.
-#
-# 3. Neither the name of the copyright holder nor the names of its
-#    contributors may be used to endorse or promote products derived from
-#    this software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 from utils.config import set_np_formatting, set_seed, get_args, parse_sim_params, load_cfg
 from utils.parse_task import parse_task
 
@@ -39,19 +11,24 @@ from learning import amp_players
 from learning import amp_models
 from learning import amp_network_builder
 
-from learning import hrl_conditioned_agent
+from learning import anyskill_network_builder
+from learning import anyskill_players
+from learning import anyskill_agent
+from learning import spec_anyskill_agent
+from learning import spec_anyskill_players
+from learning import spec_anyskill_network_builder
 
-from learning import hrl_fsm_players
-
-from learning import hrl_agent
-from learning import hrl_players
-from learning import hrl_models
-from learning import hrl_network_builder
+# from learning import hrl_conditioned_agent
+# from learning import hrl_fsm_players
+# from learning import hrl_agent
+# from learning import hrl_players
+# from learning import hrl_network_builder
 
 from learning import calm_agent
 from learning import calm_players
 from learning import calm_models
 from learning import calm_network_builder
+from learning import hrl_models
 
 from env.tasks import humanoid_amp_task
 
@@ -79,8 +56,7 @@ def create_rlgpu_env(**kwargs):
         cfg_train['params']['seed'] = cfg_train['params']['seed'] + rank
 
         args.device = 'cuda'
-        args.device_id = 1
-        # args.device_id = rank
+        args.device_id = rank
         args.rl_device = 'cuda:' + str(rank)
 
         cfg['rank'] = rank
@@ -147,8 +123,6 @@ class RLGPUEnv(vecenv.IVecEnv):
 
     def step(self, action):
         next_obs, reward, is_done, info = self.env.step(action)
-
-        # todo: improve, return only dictinary
         self.full_state["obs"] = next_obs
         if self.use_global_obs:
             self.full_state["states"] = self.env.get_state()
@@ -201,14 +175,21 @@ def build_alg_runner(algo_observer):
     runner.model_builder.model_factory.register_builder('amp', lambda network, **kwargs: amp_models.ModelAMPContinuous(network))
     runner.model_builder.network_factory.register_builder('amp', lambda **kwargs: amp_network_builder.AMPBuilder())
 
-    runner.algo_factory.register_builder('hrl_conditioned', lambda **kwargs: hrl_conditioned_agent.HRLConditionedAgent(**kwargs))
-
-    runner.player_factory.register_builder('hrl_fsm', lambda **kwargs: hrl_fsm_players.HRLFSMPlayer(**kwargs))
-
+    # use the llc_checkpoint
     runner.algo_factory.register_builder('hrl', lambda **kwargs: hrl_agent.HRLAgent(**kwargs))
     runner.player_factory.register_builder('hrl', lambda **kwargs: hrl_players.HRLPlayer(**kwargs))
     runner.model_builder.model_factory.register_builder('hrl', lambda network, **kwargs: hrl_models.ModelHRLContinuous(network))
     runner.model_builder.network_factory.register_builder('hrl', lambda **kwargs: hrl_network_builder.HRLBuilder())
+
+    runner.model_builder.model_factory.register_builder('gen_anyskill', lambda network, **kwargs: hrl_models.ModelHRLContinuous(network))
+    runner.algo_factory.register_builder('gen_anyskill', lambda **kwargs: anyskill_agent.AnyskillAgent(**kwargs))
+    runner.model_builder.network_factory.register_builder('gen_anyskill', lambda **kwargs: anyskill_network_builder.AnyskillBuilder())
+    runner.player_factory.register_builder('gen_anyskill', lambda **kwargs: anyskill_players.AnyskillPlayer(**kwargs))
+
+    runner.model_builder.model_factory.register_builder('spec_anyskill', lambda network, **kwargs: hrl_models.ModelHRLContinuous(network))
+    runner.algo_factory.register_builder('spec_anyskill', lambda **kwargs: spec_anyskill_agent.SpecAnyskillAgent(**kwargs))
+    runner.model_builder.network_factory.register_builder('spec_anyskill', lambda **kwargs: spec_anyskill_network_builder.SpecAnyskillBuilder())
+    runner.player_factory.register_builder('spec_anyskill', lambda **kwargs: spec_anyskill_players.SpecAnyskillPlayer(**kwargs))
 
     runner.algo_factory.register_builder('calm', lambda **kwargs: calm_agent.CALMAgent(**kwargs))
     runner.player_factory.register_builder('calm', lambda **kwargs: calm_players.CALMPlayer(**kwargs))
@@ -248,6 +229,11 @@ def main():
 
     # Create default directories for weights and statistics
     cfg_train['params']['config']['train_dir'] = args.output_path
+
+    cfg['env']['text_file'] = args.text_file
+    cfg_train['params']['config']['text_file'] = args.text_file
+    cfg_train['params']['config']['render'] = args.render
+    cfg['env']['render'] = args.render
 
     if args.track:
         wandb.init(

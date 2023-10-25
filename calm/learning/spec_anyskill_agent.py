@@ -1,31 +1,3 @@
-# Copyright (c) 2018-2022, NVIDIA Corporation
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#
-# 1. Redistributions of source code must retain the above copyright notice, this
-#    list of conditions and the following disclaimer.
-#
-# 2. Redistributions in binary form must reproduce the above copyright notice,
-#    this list of conditions and the following disclaimer in the documentation
-#    and/or other materials provided with the distribution.
-#
-# 3. Neither the name of the copyright holder nor the names of its
-#    contributors may be used to endorse or promote products derived from
-#    this software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 import copy
 from gym import spaces
 import numpy as np
@@ -45,7 +17,7 @@ import learning.calm_network_builder as calm_network_builder
 from utils import anyskill
 
 
-class HRLAgentAnyskill(common_agent.CommonAgent):
+class SpecAnyskillAgent(common_agent.CommonAgent):
     def __init__(self, base_name, config):
         with open(os.path.join(os.getcwd(), config['llc_config']), 'r') as f:
             llc_config = yaml.load(f, Loader=yaml.SafeLoader)
@@ -67,9 +39,7 @@ class HRLAgentAnyskill(common_agent.CommonAgent):
         self.anyskill = anyskill.anytest()
         self.mlip_encoder = anyskill.FeatureExtractor()
         self.text_file = config['text_file']
-        self.RENDER = True
-        # self.RENDER = config['render']
-
+        self.RENDER = config['render']
         return
 
     def env_step(self, actions):
@@ -82,12 +52,10 @@ class HRLAgentAnyskill(common_agent.CommonAgent):
         terminate_count = 0.0
         for t in range(self._llc_steps): #low-level controller sample 5
             llc_actions = self._compute_llc_action(obs, actions)
-
-            obs, aux_rewards, curr_dones, infos = self.vec_env.step(llc_actions)
-            obs[..., self.obs_shape[0] - self._task_size:] = self._text_latents
+            obs, aux_rewards, curr_dones, infos = self.vec_env.step(llc_actions) # 223
 
             if self.RENDER:
-                images = self.vec_env.env.task.render()
+                images = self.vec_env.env.task.render_img()
                 image_features = self.mlip_encoder.encode_images(images)
             else:
                 state_embeds = infos['state_embeds'][:, :15, :3]
@@ -117,8 +85,8 @@ class HRLAgentAnyskill(common_agent.CommonAgent):
         infos['disc_rewards'] = disc_rewards
 
         wandb.log({"similarity": similarity.mean().item()})
-        wandb.log({"reward/anyskill_reward": anyskill_rewards.mean().item()})
-        wandb.log({"reward/aux_reward": aux_rewards.mean().item()})
+        wandb.log({"reward/spec_anyskill_reward": anyskill_rewards.mean().item()})
+        wandb.log({"reward/spec_aux_reward": aux_rewards.mean().item()})
 
 
         if self.is_tensor_obses:
@@ -171,43 +139,11 @@ class HRLAgentAnyskill(common_agent.CommonAgent):
 
         return
 
-    # def get_action_values(self, obs_dict, text_latents):
-    #     processed_obs = self._preproc_obs(obs_dict['obs'])
-    #
-    #     self.model.eval()
-    #     input_dict = {
-    #         'is_train': False,
-    #         'prev_actions': None,
-    #         'obs': processed_obs,
-    #         'rnn_states': self.rnn_states,
-    #         'ase_latents': text_latents,
-    #     }
-    #
-    #     with torch.no_grad():
-    #         res_dict = self.model(input_dict)
-    #         if self.has_central_value:
-    #             states = obs_dict['states']
-    #             input_dict = {
-    #                 'is_train': False,
-    #                 'states': states,
-    #             }
-    #             value = self.get_central_value(input_dict)
-    #             res_dict['values'] = value
-    #
-    #     if self.normalize_value:
-    #         res_dict['values'] = self.value_mean_std(res_dict['values'], True)
-    #
-    #     res_dict['actions'] = res_dict['mus']
-    #
-    #     return res_dict
-
     def play_steps(self):
         self.set_eval()
-
         '''
             s, a<-z, r<-(s:img, z )
         '''
-
         epinfos = []
         done_indices = []
         update_list = self.update_list
@@ -215,10 +151,6 @@ class HRLAgentAnyskill(common_agent.CommonAgent):
         for n in range(self.horizon_length):
             self._update_latents()
             self.obs = self.env_reset(done_indices)
-
-            # update to real obs contains body states and text_latents
-            obs = self.obs['obs']
-            obs[..., self.obs_shape[0] - self._task_size:] = self._text_latents
             self.experience_buffer.update_data('obses', n, self.obs['obs'])
 
             res_dict = self.get_action_values(self.obs)
@@ -325,7 +257,6 @@ class HRLAgentAnyskill(common_agent.CommonAgent):
 
         batch_shape = self.experience_buffer.obs_base_shape
         self._latent_reset_steps = torch.zeros(batch_shape[-1], dtype=torch.int32, device=self.ppo_device)
-
 
         texts, texts_weights = load_texts(self.text_file)
         self.text_features = self.mlip_encoder.encode_texts(texts)
