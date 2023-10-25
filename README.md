@@ -58,8 +58,6 @@ python calm/run.py --test --task HumanoidAMP --num_envs 16 --cfg_env calm/data/c
 
 &nbsp;
 
-&nbsp;
-
 ### Motion Data
 
 Motion clips are located in `calm/data/motions/`. Individual motion clips are stored as `.npy` files. Motion datasets are specified by `.yaml` files, which contains a list of motion clips to be included in the dataset. Motion clips can be visualized with the following command:
