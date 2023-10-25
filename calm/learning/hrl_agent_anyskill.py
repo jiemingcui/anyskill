@@ -31,6 +31,7 @@ from gym import spaces
 import numpy as np
 import os
 import yaml
+import wandb
 
 from rl_games.common import a2c_common
 
@@ -66,7 +67,8 @@ class HRLAgentAnyskill(common_agent.CommonAgent):
         self.anyskill = anyskill.anytest()
         self.mlip_encoder = anyskill.FeatureExtractor()
         self.text_file = config['text_file']
-        self.RENDER = config['render']
+        self.RENDER = True
+        # self.RENDER = config['render']
 
         return
 
@@ -92,7 +94,7 @@ class HRLAgentAnyskill(common_agent.CommonAgent):
                 image_features = self.anyskill.get_motion_embedding(state_embeds)
 
             image_features_norm = image_features / image_features.norm(dim=-1, keepdim=True)
-            anyskill_rewards = self.vec_env.env.task.compute_anyskill_reward(image_features_norm, self._text_latents,
+            anyskill_rewards, similarity = self.vec_env.env.task.compute_anyskill_reward(image_features_norm, self._text_latents,
                                                                              self._latent_text_idx)
             curr_rewards = anyskill_rewards + aux_rewards
             self._llc_actions[t] = llc_actions
@@ -113,6 +115,11 @@ class HRLAgentAnyskill(common_agent.CommonAgent):
         terminate[terminate_count > 0] = 1.0
         infos['terminate'] = terminate
         infos['disc_rewards'] = disc_rewards
+
+        wandb.log({"similarity": similarity.mean().item()})
+        wandb.log({"reward/anyskill_reward": anyskill_rewards.mean().item()})
+        wandb.log({"reward/aux_reward": aux_rewards.mean().item()})
+
 
         if self.is_tensor_obses:
             if self.value_size == 1:

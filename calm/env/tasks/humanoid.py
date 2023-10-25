@@ -528,7 +528,7 @@ class Humanoid(BaseTask):
         self.gym.refresh_actor_root_state_tensor(self.sim)
 
         # change the setting to multi envs
-        self._cam_prev_char_pos = torch.zeros([self.num_envs, 3], device=self.device, dtype=torch.long)
+        self._cam_prev_char_pos = torch.zeros([self.num_envs, 3], device=self.device, dtype=torch.float32)
         # self._cam_prev_char_pos = self._humanoid_root_states[0, 0:3].cpu().numpy()
 
         cam_pos = gymapi.Vec3(self._cam_prev_char_pos[0, 0],

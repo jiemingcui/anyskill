@@ -27,8 +27,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import torch
-
-from isaacgym import gymtorch
+import time
+from isaacgym import gymtorch, gymapi
 
 from env.tasks.humanoid_amp_getup import HumanoidAMPGetup
 from isaacgym.torch_utils import *
@@ -77,13 +77,14 @@ class HumanoidRenderAnySKill(HumanoidAMPGetup):
         self._frame += 1
         if self._frame > 150 and self._frame%30 == 1:
             self.gym.refresh_actor_root_state_tensor(self.sim)
-            char_root_pos = self._humanoid_root_states[:, 0:3].cpu().numpy()
-            char_root_rot = self._humanoid_root_states[:, 3:7].cpu().numpy()
+            char_root_pos = self._humanoid_root_states[:, 0:3]
+            # char_root_rot = self._humanoid_root_states[:, 3:7].cpu().numpy()
             self._cam_prev_char_pos[:] = char_root_pos
 
+            start = time.time()
             for env_id in range(self.num_envs):
                 cam_trans = self.gym.get_viewer_camera_transform(self.viewer, None)
-                cam_pos = np.array([cam_trans.p.x, cam_trans.p.y, cam_trans.p.z])
+                cam_pos = torch.tensor([cam_trans.p.x, cam_trans.p.y, cam_trans.p.z], device=self.device)
                 cam_delta = cam_pos - self._cam_prev_char_pos[env_id]
 
                 target = gymapi.Vec3(char_root_pos[env_id, 0], char_root_pos[env_id, 1], 1.0)
@@ -250,7 +251,7 @@ class HumanoidRenderAnySKill(HumanoidAMPGetup):
         similarity[sim_mask] = 0
         # similarity_bar = torch.mean(similarity)
         clip_reward = torch.exp(clip_err_scale * similarity)
-        return clip_reward_w * clip_reward
+        return clip_reward_w * clip_reward, similarity
 
     def _update_task(self):
         reset_task_mask = self.progress_buf >= self._heading_change_steps

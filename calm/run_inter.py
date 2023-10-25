@@ -264,6 +264,7 @@ def main():
     cfg_train['params']['config']['train_dir'] = args.output_path
 
     cfg['env']['text_file'] = args.text_file
+    cfg['env']['render'] = args.render
     cfg_train['params']['config']['text_file'] = args.text_file
 
     if args.track:
