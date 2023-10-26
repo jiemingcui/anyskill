@@ -405,6 +405,9 @@ class Humanoid(BaseTask):
         return
 
     def _compute_reset(self):
+        '''
+        if fall down, then terminate
+        '''
         self.reset_buf[:], self._terminate_buf[:] = compute_humanoid_reset(self.reset_buf, self.progress_buf,
                                                                            self._contact_forces, self._contact_body_ids,
                                                                            self._rigid_body_pos,
@@ -709,6 +712,7 @@ def compute_humanoid_reset(reset_buf, progress_buf, contact_buf, contact_body_id
         # first timestep can sometimes still have nonzero contact forces
         # so only check after first couple of steps
         has_fallen *= (progress_buf > 1)
+        # has_fallen *= (punish_count > 5)
         terminated = torch.where(has_fallen, torch.ones_like(reset_buf), terminated)
     
     reset = torch.where(progress_buf >= max_episode_length - 1, torch.ones_like(reset_buf), terminated)
