@@ -41,8 +41,8 @@ class BaseTask:
 
         # double check!
         self.graphics_device_id = self.device_id
-        if enable_camera_sensors == False and self.headless == True:
-            self.graphics_device_id = -1
+        # if enable_camera_sensors == False and self.headless == True:
+        #     self.graphics_device_id = -1
 
         self.num_envs = cfg["env"]["numEnvs"]
         self.num_obs = cfg["env"]["numObservations"]
@@ -111,6 +111,8 @@ class BaseTask:
         # create envs, sim and viewer
         self.create_sim()
         self.gym.prepare_sim(self.sim)
+        self.cam_pos = gymapi.Vec3(0.0, 0.0, 0.0)
+        self.cam_target = gymapi.Vec3(0.0, 0.0, 0.0)
 
         # todo: read from config
         self.enable_viewer_sync = True
@@ -138,6 +140,17 @@ class BaseTask:
 
             self.gym.viewer_camera_look_at(
                 self.viewer, None, cam_pos, cam_target)
+        else:
+            if self.RENDER:
+                # set the camera position based on up axis
+                sim_params = self.gym.get_sim_params(self.sim)
+                if sim_params.up_axis == gymapi.UP_AXIS_Z:
+                    self.cam_pos = gymapi.Vec3(20.0, 25.0, 3.0)
+                    self.cam_target = gymapi.Vec3(10.0, 15.0, 0.0)
+                else:
+                    self.cam_pos = gymapi.Vec3(20.0, 3.0, 25.0)
+                    self.cam_target = gymapi.Vec3(10.0, 0.0, 15.0)
+
 
     # set gravity based on up axis and return axis index
     def set_sim_params_up_axis(self, sim_params, axis):
@@ -204,10 +217,10 @@ class BaseTask:
             else:
                 self.gym.poll_viewer_events(self.viewer)
 
-        elif self.enable_camera_sensors:
-            self.gym.fetch_results(self.sim, True)
-            self.gym.step_graphics(self.sim)
-
+        else:
+            if self.RENDER:
+                self.gym.fetch_results(self.sim, True)
+                self.gym.step_graphics(self.sim)
 
     def get_actor_params_info(self, dr_params, env):
         """Returns a flat array of actor params, their names and ranges."""
