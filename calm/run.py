@@ -210,7 +210,7 @@ def main():
     cfg, cfg_train, logdir = load_cfg(args)
 
     time_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    run_name = f"{args.wandb_run_name}_{time_str}"
+    # run_name = f"{args.wandb_run_name}_{time_str}"
     assert args.track and wandb or not args.track, "Tracking requires wandb to be installed."
 
     cfg_train['params']['seed'] = set_seed(cfg_train['params'].get("seed", -1), cfg_train['params'].get("torch_deterministic", False))
@@ -234,6 +234,7 @@ def main():
     cfg_train['params']['config']['text_file'] = args.text_file
     cfg_train['params']['config']['render'] = args.render
     cfg['env']['render'] = args.render
+    run_name = f"{args.render}_{time_str}"
 
     if args.track:
         wandb.init(

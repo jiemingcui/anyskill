@@ -39,7 +39,7 @@ env:
 
   headingChangeStepsMin: 100
   headingChangeStepsMax: 200
-  enableRandHeading: True
+  enableRandHeading: False
   enableTaskObs: True
 
   asset:

@@ -13,7 +13,7 @@ import learning.calm_models as calm_models
 import learning.calm_network_builder as calm_network_builder
 from utils import anyskill
 
-skill_command = "put up your hand"
+skill_command = "put hands up"
 class SpecAnyskillPlayer(common_player.CommonPlayer):
     def __init__(self, config):
         with open(os.path.join(os.getcwd(), config['llc_config']), 'r') as f:
@@ -27,13 +27,13 @@ class SpecAnyskillPlayer(common_player.CommonPlayer):
         
         self._llc_steps = config['llc_steps']
         llc_checkpoint = config['llc_checkpoint']
-        assert(llc_checkpoint != "")
+        assert (llc_checkpoint != "")
         self._build_llc(llc_config_params, llc_checkpoint)
 
         self._target_motion_index = torch.zeros((self.env.task.num_envs, 1), dtype=torch.long, device=self.device)
         self.anyskill = anyskill.anytest()
-        self.text_encoder = anyskill.TextToFeature()
-        self.text_latent = self.text_encoder.encode_texts([skill_command])
+        self.mlip_encoder = anyskill.FeatureExtractor()
+        self.text_latent = self.mlip_encoder.encode_texts([skill_command])
         self.print_stats = False
         self.skill_command = skill_command
 
@@ -66,7 +66,7 @@ class SpecAnyskillPlayer(common_player.CommonPlayer):
         
         return clamped_actions
 
-    def run_anyskill(self):
+    def run(self):
         n_games = self.games_num
         render = self.render_env
         n_game_life = self.n_game_life
@@ -109,19 +109,9 @@ class SpecAnyskillPlayer(common_player.CommonPlayer):
             done_indices = []
 
             for n in range(self.max_steps):
-                self.obs = self.env_reset(done_indices)
-                obs = self.obs['obs']
-
-                global skill_command
-
-                if skill_command != self.skill_command:
-                    self.skill_command = skill_command
-                    self.text_latent = self.text_encoder.encode_texts([skill_command])
-
-
-                obs[..., self.obs_shape[0] - self._task_size:][:] = self.text_latent
-                action = self.get_action(self.obs, is_determenistic)
-                obs_dict, r, done, info = self.env_step(action)
+                obs_dict = self.env_reset(done_indices)
+                action = self.get_action(obs_dict, is_determenistic)
+                obs_dict, r, done, info = self.env_step(self.env, obs_dict, action)
                 cr += r
                 steps += 1
 
@@ -172,28 +162,24 @@ class SpecAnyskillPlayer(common_player.CommonPlayer):
 
                 done_indices = done_indices[:, 0]
 
-        # # print(sum_rewards)
-        # if print_game_res:
-        #     print('av reward:', sum_rewards / games_played * n_game_life, 'av steps:', sum_steps / games_played * n_game_life, 'winrate:', sum_game_res / games_played * n_game_life)
-        # else:
-        #     print('av reward:', sum_rewards / games_played * n_game_life, 'av steps:', sum_steps / games_played * n_game_life)
-
         return
 
-    def env_step(self, action):
+    def env_step(self, env, obs_dict, action):
         if not self.is_tensor_obses:
             action = action.cpu().numpy()
 
-        obs = self.obs['obs']
+        obs = obs_dict['obs']
         rewards = 0.0
         done_count = 0.0
         disc_rewards = 0.0
         for t in range(self._llc_steps):
             llc_actions = self._compute_llc_action(obs, action)
-            obs, curr_rewards, curr_dones, infos = self.env.step(llc_actions)
-
-            obs[..., self.obs_shape[0] - self._task_size:][:] = self.text_latent
-
+            obs, aux_rewards, curr_dones, infos = env.step(llc_actions)
+            state_embeds = infos['state_embeds'][:, :15, :3]
+            image_features = self.anyskill.get_motion_embedding(state_embeds)
+            image_features_norm = image_features / image_features.norm(dim=-1, keepdim=True)
+            anyskill_rewards = 0.8 * torch.matmul(image_features_norm, self.text_latent.permute(1, 0)).squeeze()
+            curr_rewards = aux_rewards + anyskill_rewards
             rewards += curr_rewards
             done_count += curr_dones
 
@@ -280,14 +266,14 @@ class SpecAnyskillPlayer(common_player.CommonPlayer):
         disc_reward = self._llc_agent._calc_disc_rewards(amp_obs)
         return disc_reward
 
-    def get_skill_command(self):
-        global skill_command
-        while True:
-            inputs = input("please input the command: ")
-            skill_command = inputs
-
-    def run(self):
-        skill_test = threading.Thread(target=self.get_skill_command)
-        skill_test.start()
-        self.run_anyskill()
-        return
+    # def get_skill_command(self):
+    #     global skill_command
+    #     while True:
+    #         inputs = input("please input the command: ")
+    #         skill_command = inputs
+    #
+    # def run(self):
+    #     skill_test = threading.Thread(target=self.get_skill_command)
+    #     skill_test.start()
+    #     self.run_anyskill()
+    #     return

@@ -146,7 +146,6 @@ class AnyskillPlayer(common_player.CommonPlayer):
                     self.skill_command = skill_command
                     self.text_latent = self.text_encoder.encode_texts([skill_command])
 
-
                 obs[..., self.obs_shape[0] - self._task_size:][:] = self.text_latent
                 action = self.get_action(self.obs, is_determenistic)
                 obs_dict, r, done, info = self.env_step(action)
