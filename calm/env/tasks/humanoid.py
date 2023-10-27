@@ -139,7 +139,10 @@ class Humanoid(BaseTask):
 
         if self.viewer is not None:
             self._init_camera()
-            
+        else:
+            if self.RENDER:
+                self._init_camera_headless()
+
         return
 
     def get_obs_size(self):
@@ -281,7 +284,7 @@ class Humanoid(BaseTask):
         self.max_motor_effort = max(motor_efforts)
         self.motor_efforts = to_torch(motor_efforts, device=self.device)
 
-        self._frame = 0
+        # self._frame = 0
         self.torso_index = 0
         self.num_bodies = self.gym.get_asset_rigid_body_count(humanoid_asset)
         self.num_dof = self.gym.get_asset_dof_count(humanoid_asset)
@@ -336,6 +339,7 @@ class Humanoid(BaseTask):
         humanoid_handle = self.gym.create_actor(env_ptr, humanoid_asset, start_pose, "humanoid", col_group, col_filter, segmentation_id)
 
         # set camera handles
+        # set 1024 cameras in the same location?????
         camera_handle = self.gym.create_camera_sensor(env_ptr, self.camera_props)
         self.gym.set_camera_location(camera_handle, env_ptr, gymapi.Vec3(1.2, 1.3, 0.5), gymapi.Vec3(-0.5, 0.7, -0.5))
         self.camera_handles.append(camera_handle)
@@ -534,6 +538,9 @@ class Humanoid(BaseTask):
         self._cam_prev_char_pos = torch.zeros([self.num_envs, 3], device=self.device, dtype=torch.float32)
         # self._cam_prev_char_pos = self._humanoid_root_states[0, 0:3].cpu().numpy()
 
+        # cam_pos = gymapi.Vec3(self._cam_prev_char_pos[0, 0] + 3.0,
+        #                       self._cam_prev_char_pos[0, 1],
+        #                       1.0)
         cam_pos = gymapi.Vec3(self._cam_prev_char_pos[0, 0],
                               self._cam_prev_char_pos[0, 1] - 3.0,
                               1.0)
@@ -542,6 +549,19 @@ class Humanoid(BaseTask):
                                  1.0)
         self.gym.viewer_camera_look_at(self.viewer, None, cam_pos, cam_target)
 
+    def _init_camera_headless(self):
+        self.gym.refresh_actor_root_state_tensor(self.sim)
+        self._cam_prev_char_pos = torch.zeros([self.num_envs, 3], device=self.device, dtype=torch.float32)
+        self.cam_pos = gymapi.Vec3(self._cam_prev_char_pos[0, 0] + 3.0,
+                              self._cam_prev_char_pos[0, 1],
+                              1.0)
+        # cam_pos = gymapi.Vec3(self._cam_prev_char_pos[0, 0],
+        #                       self._cam_prev_char_pos[0, 1] - 3.0,
+        #                       1.0)
+        self.cam_target = gymapi.Vec3(self._cam_prev_char_pos[0, 0],
+                                 self._cam_prev_char_pos[0, 1],
+                                 1.0)
+        # self.gym.viewer_camera_look_at(self.viewer, None, cam_pos, cam_target)
         return
 
     def _update_camera(self):

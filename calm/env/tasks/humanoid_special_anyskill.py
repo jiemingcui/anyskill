@@ -16,7 +16,6 @@ class HumanoidSpecAnySKill(HumanoidAMPGetup):
         self._heading_change_steps_min = cfg["env"]["headingChangeStepsMin"]
         self._heading_change_steps_max = cfg["env"]["headingChangeStepsMax"]
         self._enable_rand_heading = cfg["env"]["enableRandHeading"]
-
         self._reset_fall_env_ids = []
 
         super().__init__(cfg=cfg,
@@ -35,8 +34,8 @@ class HumanoidSpecAnySKill(HumanoidAMPGetup):
         self._tar_facing_dir = torch.zeros([self.num_envs, 2], device=self.device, dtype=torch.float)
         self._tar_facing_dir[..., 0] = 1.0
 
-        # self._tar_speed = torch.zeros([self.num_envs], device=self.device, dtype=torch.float)
-        self._tar_speed = torch.ones([self.num_envs], device=self.device, dtype=torch.float)
+        self._tar_speed = torch.zeros([self.num_envs], device=self.device, dtype=torch.float)
+        # self._tar_speed = torch.ones([self.num_envs], device=self.device, dtype=torch.float)
         self._heading_change_steps = torch.zeros([self.num_envs], device=self.device, dtype=torch.int64)
         self._similarity = torch.zeros([self.num_envs], device=self.device, dtype=torch.float32)
         self._punish_counter = torch.zeros([self.num_envs], device=self.device, dtype=torch.int)
@@ -45,39 +44,70 @@ class HumanoidSpecAnySKill(HumanoidAMPGetup):
         return
 
     def render_img(self, sync_frame_time=False):
-        # super(HumanoidSpecAnySKill, self).render()
-        self._frame += 1
-        if self._frame > 150:
-        # if self._frame > 150 and self._frame%30 == 1:
-            self.gym.refresh_actor_root_state_tensor(self.sim)
-            char_root_pos = self._humanoid_root_states[:, 0:3] if self.RENDER else self._humanoid_root_states[:, 0:3].cpu().numpy()
-            # char_root_rot = self._humanoid_root_states[:, 3:7].cpu().numpy()
-            self._cam_prev_char_pos[:] = char_root_pos
+        self.gym.refresh_actor_root_state_tensor(self.sim)
+        char_root_pos = self._humanoid_root_states[:, 0:3] if self.RENDER else self._humanoid_root_states[:, 0:3].cpu().numpy()
+        # char_root_rot = self._humanoid_root_states[:, 3:7].cpu().numpy()
+        self._cam_prev_char_pos[:] = char_root_pos
 
-            start = time.time()
-            for env_id in range(self.num_envs):
-                cam_trans = self.gym.get_viewer_camera_transform(self.viewer, None)
-                cam_pos = torch.tensor([cam_trans.p.x, cam_trans.p.y, cam_trans.p.z], device=self.device)
-                cam_delta = cam_pos - self._cam_prev_char_pos[env_id]
+        start = time.time()
+        for env_id in range(self.num_envs):
+            cam_trans = self.gym.get_viewer_camera_transform(self.viewer, None)
+            cam_pos = torch.tensor([cam_trans.p.x, cam_trans.p.y, cam_trans.p.z], device=self.device)
+            cam_delta = cam_pos - self._cam_prev_char_pos[env_id]
 
-                target = gymapi.Vec3(char_root_pos[env_id, 0], char_root_pos[env_id, 1], 1.0)
-                pos = gymapi.Vec3(char_root_pos[env_id, 0] + cam_delta[0],
-                                  char_root_pos[env_id, 1] + cam_delta[1],
-                                  cam_pos[2])
+            target = gymapi.Vec3(char_root_pos[env_id, 0], char_root_pos[env_id, 1], 1.0)
+            pos = gymapi.Vec3(char_root_pos[env_id, 0] + cam_delta[0],
+                              char_root_pos[env_id, 1] + cam_delta[1],
+                              cam_pos[2])
 
-                self.gym.viewer_camera_look_at(self.viewer, None, pos, target)
-                pos_nearer = gymapi.Vec3(pos.x + 1.2, pos.y + 1.2, pos.z)
-                self.gym.set_camera_location(self.camera_handles[env_id], self.envs[env_id], pos_nearer, target)
+            self.gym.viewer_camera_look_at(self.viewer, None, pos, target)
+            pos_nearer = gymapi.Vec3(pos.x + 1.2, pos.y + 1.2, pos.z)
+            self.gym.set_camera_location(self.camera_handles[env_id], self.envs[env_id], pos_nearer, target)
 
-            self.gym.render_all_camera_sensors(self.sim)
-            self.gym.start_access_image_tensors(self.sim)
+        self.gym.render_all_camera_sensors(self.sim)
+        self.gym.start_access_image_tensors(self.sim)
 
-            for env_id in range(self.num_envs):
-                camera_rgba_tensor = self.gym.get_camera_image_gpu_tensor(self.sim, self.envs[env_id], self.camera_handles[env_id],
-                                                                          gymapi.IMAGE_COLOR)
-                self.torch_rgba_tensor[env_id] = gymtorch.wrap_tensor(camera_rgba_tensor)[:, :, :3].float()  # [224,224,3] -> IM -> [env,224,224,3]
-            print("time of render {} frames' image: {}".format(env_id, (time.time() - start)))
-            self.gym.end_access_image_tensors(self.sim)
+        for env_id in range(self.num_envs):
+            camera_rgba_tensor = self.gym.get_camera_image_gpu_tensor(self.sim, self.envs[env_id], self.camera_handles[env_id],
+                                                                      gymapi.IMAGE_COLOR)
+            self.torch_rgba_tensor[env_id] = gymtorch.wrap_tensor(camera_rgba_tensor)[:, :, :3].float()  # [224,224,3] -> IM -> [env,224,224,3]
+        print("time of render {} frames' image: {}".format(env_id, (time.time() - start)))
+        self.gym.end_access_image_tensors(self.sim)
+
+        return self.torch_rgba_tensor.permute(0, 3, 1, 2)
+
+    def render_headless(self, sync_frame_time=False):
+        self.gym.refresh_actor_root_state_tensor(self.sim)
+        char_root_pos = self._humanoid_root_states[:, 0:3]
+        # char_root_rot = self._humanoid_root_states[:, 3:7].cpu().numpy()
+        self._cam_prev_char_pos[:] = char_root_pos
+
+        start = time.time()
+        for env_id in range(self.num_envs):
+            cam_pos = torch.tensor([self.cam_pos.x, self.cam_pos.y, self.cam_pos.z], device=self.device)
+            cam_delta = cam_pos - self._cam_prev_char_pos[env_id]
+
+            target = gymapi.Vec3(char_root_pos[env_id, 0], char_root_pos[env_id, 1], 1.0)
+            pos = gymapi.Vec3(char_root_pos[env_id, 0] + cam_delta[0],
+                              char_root_pos[env_id, 1] + cam_delta[1],
+                              cam_pos[2])
+
+            pos_nearer = gymapi.Vec3(pos.x + 1.2, pos.y + 1.2, pos.z)
+            self.gym.set_camera_location(self.camera_handles[env_id], self.envs[env_id], pos_nearer, target)
+
+        self.gym.render_all_camera_sensors(self.sim)
+        self.gym.start_access_image_tensors(self.sim)
+
+        # todo: THE CAMERA VIEW CHANGE STEP BY STEP
+
+        for env_id in range(self.num_envs):
+            camera_rgba_tensor = self.gym.get_camera_image_gpu_tensor(self.sim, self.envs[env_id],
+                                                                      self.camera_handles[env_id],
+                                                                      gymapi.IMAGE_COLOR)
+            self.torch_rgba_tensor[env_id] = gymtorch.wrap_tensor(camera_rgba_tensor)[:, :,
+                                             :3].float()  # [224,224,3] -> IM -> [env,224,224,3]
+        print("time of render {} frames' image: {}".format(env_id, (time.time() - start)))
+        self.gym.end_access_image_tensors(self.sim)
 
         return self.torch_rgba_tensor.permute(0, 3, 1, 2)
 
@@ -213,19 +243,47 @@ class HumanoidSpecAnySKill(HumanoidAMPGetup):
         return
 
     def compute_anyskill_reward(self, img_features_norm, text_features_norm, corresponding_id):
-        similarity = torch.einsum('ij,ji->i', img_features_norm, text_features_norm[corresponding_id].T)
+        similarity = torch.einsum('ij,ij->i', img_features_norm, text_features_norm[corresponding_id])
 
         # similarity_m = (100.0 * torch.matmul(img_features_norm, text_features_norm.permute(1, 0))).squeeze()
         # rows = torch.arange(corresponding_id.size(0))
         # similarity_raw = similarity_m[rows, corresponding_id]
-        clip_reward_w = 800
-
+        if self.RENDER:
+            clip_reward_w = 800
+        else:
+            clip_reward_w = 3600
+            # clip_reward_w = 30000
         delta = similarity - self._similarity
         punish_mask = delta < 0
         self._punish_counter[punish_mask] += 1
-        # clip_reward = clip_reward_w * delta
 
-        clip_reward = 0.8 * similarity
+        # delta
+        # print("clip_reward_w: {}".format(clip_reward_w))
+        clip_reward = clip_reward_w * delta
+
+        # # # value
+        # clip_reward = 0.8 * similarity
+
+        # # global
+        # alpha = 0.5
+        # similarity.unsqueeze(1)
+        # delta.unsqueeze(1)
+        # clip_reward = torch.zeros_like(similarity)
+        # for i in range(1024):
+        #     proj = (torch.dot(similarity[i], delta[i]) / torch.norm(delta[i], p=2)**2) * delta
+        #     term1 = alpha * proj * similarity[i]
+        #     term2 = (1-alpha) * delta[i]
+        #     clip_reward[i] = 1 - 0.5 * torch.norm(term1 + term2, p=2)**2
+
+        # # CLIP socre
+        # mask = similarity < 0
+        # print((mask==True).sum())
+        # similarity[mask] = 0
+        # clip_score = 2.5 * similarity
+
+        # # RCLIP score
+        # # clip_score - E(clip_score)
+        # # self._exp_sim()
 
         self._similarity = similarity
         return clip_reward, similarity
@@ -298,9 +356,9 @@ def compute_aux_reward(root_pos, prev_root_pos, tar_dir, tar_speed, dt):
     # dist_mask = pos_err < dist_threshold
     # facing_reward[dist_mask] = 1.0
 
-    # reward = vel_reward_w * vel_reward
+    reward = vel_reward_w * vel_reward
     # reward = face_reward_w * move_dir_reward
-    reward = vel_reward_w * vel_reward + face_reward_w * move_dir_reward
+    # reward = vel_reward_w * vel_reward + face_reward_w * move_dir_reward
 
     return reward
 

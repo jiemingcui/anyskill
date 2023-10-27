@@ -13,7 +13,7 @@ import learning.calm_models as calm_models
 import learning.calm_network_builder as calm_network_builder
 from utils import anyskill
 
-skill_command = "put hands up"
+skill_command = "kick"
 class SpecAnyskillPlayer(common_player.CommonPlayer):
     def __init__(self, config):
         with open(os.path.join(os.getcwd(), config['llc_config']), 'r') as f:

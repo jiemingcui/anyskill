@@ -8,7 +8,8 @@ import wandb
 from rl_games.common import a2c_common
 
 import torch
-from torch.nn.functional import cosine_similarity
+# from torch.nn.functional import cosine_similarity
+import torch.nn.functional as F
 
 import learning.common_agent as common_agent
 import learning.calm_agent as calm_agent
@@ -27,44 +28,69 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
         super().__init__(base_name, config)
 
         self._task_size = self.vec_env.env.task.get_task_obs_size()
-        
+
         self._llc_steps = config['llc_steps']
         llc_checkpoint = config['llc_checkpoint']
         assert(llc_checkpoint != "")
         self._build_llc(llc_config_params, llc_checkpoint)
 
-        self._latent_steps_min = 30
-        self._latent_steps_max = 90
+        self._latent_steps_min = 32
+        self._latent_steps_max = 96
 
         self.anyskill = anyskill.anytest()
         self.mlip_encoder = anyskill.FeatureExtractor()
         self.text_file = config['text_file']
         self.RENDER = config['render']
+        self._exp_sim = torch.zeros([32, 1024], device=self.device, dtype=torch.float32)
+        self.clip_features = []
+        # self.clip_features = torch.zeros([1, 512], device=self.device, dtype=torch.float32)
+        # self.motionclip_features = torch.zeros([1, 15, 3], device=self.device, dtype=torch.float32)
+        self.motionclip_features = []
+        self.counter = 0
+        self.headless = config['headless']
         return
 
-    def env_step(self, actions):
+    def env_step(self, actions, step):
         actions = self.preprocess_actions(actions)
         obs = self.obs['obs']
         self._llc_actions = torch.zeros([self._llc_steps, 1024, 28], device=self.device, dtype=torch.float32)
+        anyskill_count = torch.zeros([self._llc_steps, 1024], device=self.device, dtype=torch.float32)
+
         rewards = 0.0
         disc_rewards = 0.0
         done_count = 0.0
         terminate_count = 0.0
-        for t in range(self._llc_steps): #low-level controller sample 5
-            llc_actions = self._compute_llc_action(obs, actions)
-            obs, aux_rewards, curr_dones, infos = self.vec_env.step(llc_actions) # 223
+        for t in range(self._llc_steps): # low-level controller sample 5
+            llc_actions = self._compute_llc_action(obs, actions) # get actions
+            obs, aux_rewards, curr_dones, infos = self.vec_env.step(llc_actions) # 223d update actions
 
             if self.RENDER:
-                images = self.vec_env.env.task.render_img()
+                if self.headless == False:
+                    images = self.vec_env.env.task.render_img()
+                else:
+                    print("apply the headless mode")
+                    images = self.vec_env.env.task.render_headless()
                 image_features = self.mlip_encoder.encode_images(images)
+                state_embeds = infos['state_embeds'][:, :15, :3]
+                print("we have render")
+                self.clip_features.append(image_features.data.cpu().numpy())
+                self.motionclip_features.append(state_embeds.data.cpu().numpy())
+                image_features_norm = image_features / image_features.norm(dim=-1, keepdim=True)
+
             else:
                 state_embeds = infos['state_embeds'][:, :15, :3]
-                image_features = self.anyskill.get_motion_embedding(state_embeds)
+                image_features_mlp = self.anyskill.get_motion_embedding(state_embeds)
+                image_features_norm = image_features_mlp / image_features_mlp.norm(dim=-1, keepdim=True)
+                print("we have MLP")
 
-            image_features_norm = image_features / image_features.norm(dim=-1, keepdim=True)
+            # eu_dis = F.pairwise_distance(image_features_norm, image_features_mlp_norm, keepdim=True)
+            # cos_ids = F.cosine_similarity(image_features_norm, image_features_mlp_norm, dim=1)
+
             anyskill_rewards, similarity = self.vec_env.env.task.compute_anyskill_reward(image_features_norm, self._text_latents,
                                                                              self._latent_text_idx)
-            curr_rewards = anyskill_rewards + aux_rewards
+            curr_rewards = anyskill_rewards
+            # curr_rewards = anyskill_rewards + aux_rewards #(1024,)
+            # anyskill_count[t] = anyskill_rewards #(5, 1024)
             self._llc_actions[t] = llc_actions
             rewards += curr_rewards
             done_count += curr_dones
@@ -74,9 +100,9 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
             curr_disc_reward = self._calc_disc_reward(amp_obs)
             disc_rewards += curr_disc_reward
 
-        rewards /= self._llc_steps
+        # self._exp_sim[step] = anyskill_count.mean(dim=0) #(1024,)
+        rewards /= self._llc_steps #(1024,)
         disc_rewards /= self._llc_steps
-
         dones = torch.zeros_like(done_count)
         dones[done_count > 0] = 1.0
         terminate = torch.zeros_like(terminate_count)
@@ -84,10 +110,14 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
         infos['terminate'] = terminate
         infos['disc_rewards'] = disc_rewards
 
-        wandb.log({"similarity": similarity.mean().item()})
-        wandb.log({"reward/spec_anyskill_reward": anyskill_rewards.mean().item()})
-        wandb.log({"reward/spec_aux_reward": aux_rewards.mean().item()})
-
+        wandb.log({"info/similarity": similarity.mean().item()}, step)
+        wandb.log({"reward/spec_anyskill_reward": anyskill_rewards.mean().item()}, step)
+        wandb.log({"reward/spec_aux_reward": aux_rewards.mean().item()}, step)
+        wandb.log({"info/eposide": self.vec_env.env.task.eposide}, step)
+        # wandb.log({"info/eu_dis": eu_dis.mean().item()}, step)
+        # wandb.log({"info/cos_dis": cos_ids.mean().item()}, step)
+        wandb.log({"info/step": step}, step)
+        self.vec_env.env.task.eposide = 0
 
         if self.is_tensor_obses:
             if self.value_size == 1:
@@ -140,6 +170,7 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
         return
 
     def play_steps(self):
+        self.counter += 1
         self.set_eval()
         '''
             s, a<-z, r<-(s:img, z )
@@ -161,10 +192,14 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
             if self.has_central_value:
                 self.experience_buffer.update_data('states', n, self.obs['states'])
 
-            self.obs, rewards, self.dones, infos, _llc_actions = self.env_step(res_dict['actions'])
+            # if n < 2 and n > 23:
+            #     continue
+            self.obs, rewards, self.dones, infos, _llc_actions = self.env_step(res_dict['actions'], n)
 
+            # # Calculate RCLIP score
+            # rewards -= self._exp_sim.mean(dim=0)  # (32,1024)
             shaped_rewards = self.rewards_shaper(rewards)
-            # self.experience_buffer.update_data('text_latents', n, self._text_latents)
+
             self.experience_buffer.update_data('rewards', n, shaped_rewards)
             self.experience_buffer.update_data('next_obses', n, self.obs['obs'])
             self.experience_buffer.update_data('dones', n, self.dones)
@@ -213,6 +248,12 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
         batch_dict = self.experience_buffer.get_transformed_list(a2c_common.swap_and_flatten01, self.tensor_list)
         batch_dict['returns'] = a2c_common.swap_and_flatten01(mb_returns)
         batch_dict['played_frames'] = self.batch_size
+
+        # if self.counter % 150 == 1:
+        #     np.save("./output/motion_feature_location.npy", self.motionclip_features)
+        #     np.save("./output/image_feature_location.npy", self.clip_features)
+        #
+        # print("we have run {} steps and save data".format(self.counter))
 
         return batch_dict
     
@@ -335,7 +376,7 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
 
     def _calc_style_reward(self, action):
         z = torch.nn.functional.normalize(action, dim=-1)
-        style_reward = torch.max((cosine_similarity(z.unsqueeze(1), self.encoded_motion, dim=-1) + 1) / 2, dim=1)[0]
+        style_reward = torch.max((F.cosine_similarity(z.unsqueeze(1), self.encoded_motion, dim=-1) + 1) / 2, dim=1)[0]
         return style_reward.unsqueeze(-1)
 
     def _combine_rewards(self, task_rewards, disc_rewards, style_rewards):

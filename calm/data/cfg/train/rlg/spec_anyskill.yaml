@@ -51,7 +51,7 @@ params:
     learning_rate: 2e-5
     lr_schedule: constant
     score_to_win: 20000
-    max_epochs: 100
+    max_epochs: 10000
 #    max_epochs: 10000
     save_best_after: 10
     save_frequency: 10
@@ -63,8 +63,10 @@ params:
     truncate_grads: False
     ppo: True
     e_clip: 0.2
-    horizon_length: 32
-    minibatch_size: 16384
+    horizon_length: 4
+#    horizon_length: 32
+    minibatch_size: 2048
+#    minibatch_size: 16384
     mini_epochs: 6
     critic_coef: 5
     clip_value: False

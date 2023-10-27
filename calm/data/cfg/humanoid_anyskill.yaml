@@ -2,16 +2,20 @@
 env: 
   numEnvs: 1024
   envSpacing: 5
-  episodeLength: 300
+  episodeLength: 50
+#  episodeLength: 300
   isFlagrun: False
   enableDebugVis: False
   
   pdControl: True
   powerScale: 1.0
   controlFrequencyInv: 2 # 30 Hz
-  stateInit: "Random"
+  stateInit: "Default"
+#  stateInit: "Random"
   hybridInitProb: 0.5
+#  numAMPObsSteps: 5
   numAMPObsSteps: 10
+#  numAMPEncObsSteps: 30
   numAMPEncObsSteps: 60
 
 
@@ -24,7 +28,8 @@ env:
 #  numAMPEncObsSteps: 60
   recoveryEpisodeProb: 0.2
   recoverySteps: 60
-  fallInitProb: 0.1
+  fallInitProb: 0.0
+#  fallInitProb: 0.1
 
 
   localRootObs: True
