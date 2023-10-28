@@ -249,7 +249,7 @@ def get_args(benchmark=False):
          "help": ""},
         {"name": "--track", "action": "store_true", "default": False,
          "help": "Track training using weights and biases"},
-        {"name": "--wandb_project_name", "type": str, "default": "general_policy",
+        {"name": "--wandb_project_name", "type": str, "default": "general_policy_3090",
          "help": "Name of the weights and biases project."},
         {"name": "--wandb_run_name", "type": str, "default": "default",
          "help": "Name of the weights and biases project."},
@@ -265,6 +265,8 @@ def get_args(benchmark=False):
          "help": "In training, provide the caption file of CLIP"},
         {"name": "--render", "action": "store_true", "default": False,
          "help": "In train, whether to render the environment"},
+        {"name": "--wandb_counter", "type": int, "default": 5,
+         "help": "Count the llc_step we use in training"},
 
     ]
 

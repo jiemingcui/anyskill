@@ -235,7 +235,7 @@ def main():
     cfg_train['params']['config']['render'] = args.render
     cfg_train['params']['config']['headless'] = args.headless
     cfg['env']['render'] = args.render
-    run_name = f"{args.render}_{args.llc_steps}_{time_str}"
+    run_name = f"{args.render}_{str(args.wandb_counter)}_{time_str}"
 
     if args.track:
         wandb.init(
