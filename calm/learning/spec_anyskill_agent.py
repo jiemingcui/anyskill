@@ -48,6 +48,8 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
         self.motionclip_features = []
         self.counter = 0
         self.headless = config['headless']
+        self.motionfile = "./output/motion_feature_spec" + str(self._llc_steps) + ".npy"
+        self.imagefile = "./output/image_feature_spec" + str(self._llc_steps) + ".npy"
         return
 
     def env_step(self, actions, step):
@@ -249,9 +251,10 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
         batch_dict['returns'] = a2c_common.swap_and_flatten01(mb_returns)
         batch_dict['played_frames'] = self.batch_size
 
-        # if self.counter % 150 == 1:
-        #     np.save("./output/motion_feature_location.npy", self.motionclip_features)
-        #     np.save("./output/image_feature_location.npy", self.clip_features)
+        if self.counter % 150 == 1:
+
+            np.save(self.motionfile, self.motionclip_features)
+            np.save(self.imagefile, self.clip_features)
         #
         # print("we have run {} steps and save data".format(self.counter))
 
