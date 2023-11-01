@@ -60,6 +60,7 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
         anyskill_count = torch.zeros([self._llc_steps, 1024], device=self.device, dtype=torch.float32)
 
         rewards = 0.0
+        max_anyksill = torch.zeros([1024], device=self.device, dtype=torch.float32)
         disc_rewards = 0.0
         done_count = 0.0
         terminate_count = 0.0
@@ -71,11 +72,11 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
                 if self.headless == False:
                     images = self.vec_env.env.task.render_img()
                 else:
-                    print("apply the headless mode")
+                    # print("apply the headless mode")
                     images = self.vec_env.env.task.render_headless()
                 image_features = self.mlip_encoder.encode_images(images)
                 state_embeds = infos['state_embeds'][:, :15, :3]
-                print("we have render")
+                # print("we have render")
                 self.clip_features.append(image_features.data.cpu().numpy())
                 self.motionclip_features.append(state_embeds.data.cpu().numpy())
                 image_features_norm = image_features / image_features.norm(dim=-1, keepdim=True)
@@ -84,7 +85,7 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
                 state_embeds = infos['state_embeds'][:, :15, :3]
                 image_features_mlp = self.anyskill.get_motion_embedding(state_embeds)
                 image_features_norm = image_features_mlp / image_features_mlp.norm(dim=-1, keepdim=True)
-                print("we have MLP")
+                # print("we have MLP")
 
             # eu_dis = F.pairwise_distance(image_features_norm, image_features_mlp_norm, keepdim=True)
             # cos_ids = F.cosine_similarity(image_features_norm, image_features_mlp_norm, dim=1)
@@ -96,10 +97,13 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
             disc_rewards += curr_disc_reward
             self._llc_actions[t] = llc_actions
 
-        # average
+            # average
             anyskill_rewards, similarity = self.vec_env.env.task.compute_anyskill_reward(image_features_norm, self._text_latents,
                                                                              self._latent_text_idx)
-            curr_rewards = anyskill_rewards
+            max_anyksill = torch.max(max_anyksill, anyskill_rewards)
+
+            curr_rewards = max_anyksill
+            # curr_rewards = anyskill_rewards
             # curr_rewards = anyskill_rewards + aux_rewards #(1024,)
             # anyskill_count[t] = anyskill_rewards #(5, 1024)
             rewards += curr_rewards

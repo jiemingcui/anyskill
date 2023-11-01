@@ -71,7 +71,7 @@ class HumanoidSpecAnySKill(HumanoidAMPGetup):
             camera_rgba_tensor = self.gym.get_camera_image_gpu_tensor(self.sim, self.envs[env_id], self.camera_handles[env_id],
                                                                       gymapi.IMAGE_COLOR)
             self.torch_rgba_tensor[env_id] = gymtorch.wrap_tensor(camera_rgba_tensor)[:, :, :3].float()  # [224,224,3] -> IM -> [env,224,224,3]
-        print("time of render {} frames' image: {}".format(env_id, (time.time() - start)))
+        # print("time of render {} frames' image: {}".format(env_id, (time.time() - start)))
         self.gym.end_access_image_tensors(self.sim)
 
         return self.torch_rgba_tensor.permute(0, 3, 1, 2)
@@ -106,7 +106,7 @@ class HumanoidSpecAnySKill(HumanoidAMPGetup):
                                                                       gymapi.IMAGE_COLOR)
             self.torch_rgba_tensor[env_id] = gymtorch.wrap_tensor(camera_rgba_tensor)[:, :,
                                              :3].float()  # [224,224,3] -> IM -> [env,224,224,3]
-        print("time of render {} frames' image: {}".format(env_id, (time.time() - start)))
+        # print("time of render {} frames' image: {}".format(env_id, (time.time() - start)))
         self.gym.end_access_image_tensors(self.sim)
 
         return self.torch_rgba_tensor.permute(0, 3, 1, 2)
@@ -180,7 +180,7 @@ class HumanoidSpecAnySKill(HumanoidAMPGetup):
         recovery_mask = torch.bernoulli(recovery_probs) == 1.0
         terminated_mask = (self._terminate_buf[env_ids] == 1)
         mlip_mask = self._punish_counter[env_ids] > 8 # true for terminate
-        print("Due to similarity, we need terminate {} envs.".format((mlip_mask==True).sum()))
+        # print("Due to similarity, we need terminate {} envs.".format((mlip_mask==True).sum()))
 
         filter_recovery_mask = torch.logical_and(recovery_mask, torch.logical_not(mlip_mask))
         recovery_mask = torch.logical_and(filter_recovery_mask, terminated_mask)
@@ -320,7 +320,7 @@ class HumanoidSpecAnySKill(HumanoidAMPGetup):
 
         self._tar_speed[env_ids] = tar_speed
         self._tar_dir[env_ids] = tar_dir
-        print("tar_dir: ", tar_dir)
+        # print("tar_dir: ", tar_dir)
         self._tar_facing_dir[env_ids] = face_tar_dir
         self._heading_change_steps[env_ids] = self.progress_buf[env_ids] + change_steps
         return
