@@ -257,12 +257,12 @@ class HumanoidSpecAnySKill(HumanoidAMPGetup):
         punish_mask = delta < 0
         self._punish_counter[punish_mask] += 1
 
-        # delta
-        # print("clip_reward_w: {}".format(clip_reward_w))
-        clip_reward = clip_reward_w * delta
+        # # delta
+        # # print("clip_reward_w: {}".format(clip_reward_w))
+        # clip_reward = clip_reward_w * delta
 
-        # # # value
-        # clip_reward = 0.8 * similarity
+        # # value
+        clip_reward = 0.8 * similarity
 
         # # global
         # alpha = 0.5
@@ -286,7 +286,7 @@ class HumanoidSpecAnySKill(HumanoidAMPGetup):
         # # self._exp_sim()
 
         self._similarity = similarity
-        return clip_reward, similarity
+        return clip_reward, delta
 
     def _update_task(self):
         reset_task_mask = self.progress_buf >= self._heading_change_steps

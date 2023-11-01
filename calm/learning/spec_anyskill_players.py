@@ -2,6 +2,7 @@ import copy
 from gym import spaces
 import numpy as np
 import os
+import time
 import torch 
 import yaml
 import threading
@@ -31,13 +32,12 @@ class SpecAnyskillPlayer(common_player.CommonPlayer):
         self._build_llc(llc_config_params, llc_checkpoint)
 
         self._target_motion_index = torch.zeros((self.env.task.num_envs, 1), dtype=torch.long, device=self.device)
+        self._similarity = torch.zeros([self.env.task.num_envs], dtype=torch.float32, device=self.device)
         self.anyskill = anyskill.anytest()
         self.mlip_encoder = anyskill.FeatureExtractor()
-        self.text_latent = self.mlip_encoder.encode_texts([skill_command])
-        self.print_stats = False
+        self.text_features = self.mlip_encoder.encode_texts([skill_command])
+        self.print_stats = True
         self.skill_command = skill_command
-
-
         return
     
     def get_action(self, obs_dict, is_determenistic=False):
@@ -95,7 +95,7 @@ class SpecAnyskillPlayer(common_player.CommonPlayer):
             batch_size = 1
             if len(obs_dict['obs'].size()) > len(self.obs_shape):
                 batch_size = obs_dict['obs'].size()[0]
-            self.batch_size = batch_size
+            self.batch_size = batch_size #16
 
             if need_init_rnn:
                 self.init_rnn()
@@ -109,6 +109,7 @@ class SpecAnyskillPlayer(common_player.CommonPlayer):
             done_indices = []
 
             for n in range(self.max_steps):
+                print("step is: ", n)
                 obs_dict = self.env_reset(done_indices)
                 action = self.get_action(obs_dict, is_determenistic)
                 obs_dict, r, done, info = self.env_step(self.env, obs_dict, action)
@@ -117,9 +118,9 @@ class SpecAnyskillPlayer(common_player.CommonPlayer):
 
                 self._post_step(info)
 
-                if render:
-                    self.env.render(mode = 'human')
-                    time.sleep(self.render_sleep)
+                # # if render:
+                # self.env.render(mode = 'human')
+                time.sleep(0.005)
 
                 all_done_indices = done.nonzero(as_tuple=False)
                 done_indices = all_done_indices[::self.num_agents]
@@ -175,11 +176,20 @@ class SpecAnyskillPlayer(common_player.CommonPlayer):
         for t in range(self._llc_steps):
             llc_actions = self._compute_llc_action(obs, action)
             obs, aux_rewards, curr_dones, infos = env.step(llc_actions)
-            state_embeds = infos['state_embeds'][:, :15, :3]
-            image_features = self.anyskill.get_motion_embedding(state_embeds)
-            image_features_norm = image_features / image_features.norm(dim=-1, keepdim=True)
-            anyskill_rewards = 0.8 * torch.matmul(image_features_norm, self.text_latent.permute(1, 0)).squeeze()
-            curr_rewards = aux_rewards + anyskill_rewards
+            # state_embeds = infos['state_embeds'][:, :15, :3]
+            # image_features = self.anyskill.get_motion_embedding(state_embeds)
+
+            # images = env.task.render_img()
+            # image_features = self.mlip_encoder.encode_images(images)
+            # image_features_norm = image_features / image_features.norm(dim=-1, keepdim=True)
+            # text_features_norm = self.text_features / self.text_features.norm(dim=-1, keepdim=True)
+            #
+            # similarity = torch.einsum('ij,ij->i', image_features_norm, text_features_norm)
+            # curr_rewards = 800 * (similarity - self._similarity)
+            # self._similarity = similarity
+
+            curr_rewards = aux_rewards
+            # curr_rewards = aux_rewards + anyskill_rewards
             rewards += curr_rewards
             done_count += curr_dones
 

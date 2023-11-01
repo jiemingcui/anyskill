@@ -30,6 +30,7 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
         self._task_size = self.vec_env.env.task.get_task_obs_size()
 
         self._llc_steps = config['llc_steps']
+        self._wandb_counter = config['wandb_counter']
         llc_checkpoint = config['llc_checkpoint']
         assert(llc_checkpoint != "")
         self._build_llc(llc_config_params, llc_checkpoint)
@@ -48,8 +49,8 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
         self.motionclip_features = []
         self.counter = 0
         self.headless = config['headless']
-        self.motionfile = "./output/motion_feature_spec" + str(self._llc_steps) + ".npy"
-        self.imagefile = "./output/image_feature_spec" + str(self._llc_steps) + ".npy"
+        self.motionfile = "./output/motion_feature_spec" + str(self._wandb_counter) + ".npy"
+        self.imagefile = "./output/image_feature_spec" + str(self._wandb_counter) + ".npy"
         return
 
     def env_step(self, actions, step):
@@ -88,19 +89,20 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
             # eu_dis = F.pairwise_distance(image_features_norm, image_features_mlp_norm, keepdim=True)
             # cos_ids = F.cosine_similarity(image_features_norm, image_features_mlp_norm, dim=1)
 
+            done_count += curr_dones
+            terminate_count += infos['terminate']
+            amp_obs = infos['amp_obs']
+            curr_disc_reward = self._calc_disc_reward(amp_obs)
+            disc_rewards += curr_disc_reward
+            self._llc_actions[t] = llc_actions
+
+        # average
             anyskill_rewards, similarity = self.vec_env.env.task.compute_anyskill_reward(image_features_norm, self._text_latents,
                                                                              self._latent_text_idx)
             curr_rewards = anyskill_rewards
             # curr_rewards = anyskill_rewards + aux_rewards #(1024,)
             # anyskill_count[t] = anyskill_rewards #(5, 1024)
-            self._llc_actions[t] = llc_actions
             rewards += curr_rewards
-            done_count += curr_dones
-            terminate_count += infos['terminate']
-            
-            amp_obs = infos['amp_obs']
-            curr_disc_reward = self._calc_disc_reward(amp_obs)
-            disc_rewards += curr_disc_reward
 
         # self._exp_sim[step] = anyskill_count.mean(dim=0) #(1024,)
         rewards /= self._llc_steps #(1024,)
@@ -112,7 +114,24 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
         infos['terminate'] = terminate
         infos['disc_rewards'] = disc_rewards
 
-        wandb.log({"info/similarity": similarity.mean().item()}, step)
+        # # max
+        #     anyskill_rewards, similarity = self.vec_env.env.task.compute_anyskill_reward(image_features_norm, self._text_latents,
+        #                                                                      self._latent_text_idx)
+        #     curr_rewards = anyskill_rewards
+        #     rewards = torch.max(curr_rewards)
+        #
+        # # self._exp_sim[step] = anyskill_count.mean(dim=0) #(1024,)
+        # # rewards /= self._llc_steps #(1024,)
+        # disc_rewards /= self._llc_steps
+        # dones = torch.zeros_like(done_count)
+        # dones[done_count > 0] = 1.0
+        # terminate = torch.zeros_like(terminate_count)
+        # terminate[terminate_count > 0] = 1.0
+        # infos['terminate'] = terminate
+        # infos['disc_rewards'] = disc_rewards
+
+
+        wandb.log({"info/delta": similarity.mean().item()}, step)
         wandb.log({"reward/spec_anyskill_reward": anyskill_rewards.mean().item()}, step)
         wandb.log({"reward/spec_aux_reward": aux_rewards.mean().item()}, step)
         wandb.log({"info/eposide": self.vec_env.env.task.eposide}, step)
