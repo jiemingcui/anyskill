@@ -100,11 +100,15 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
             # average
             anyskill_rewards, similarity = self.vec_env.env.task.compute_anyskill_reward(image_features_norm, self._text_latents,
                                                                              self._latent_text_idx)
-            max_anyksill = torch.max(max_anyksill, anyskill_rewards)
 
-            curr_rewards = max_anyksill
+            # # max
+            # max_anyksill = torch.max(max_anyksill, anyskill_rewards)
+            # curr_rewards = max_anyksill
+
             # curr_rewards = anyskill_rewards
-            # curr_rewards = anyskill_rewards + aux_rewards #(1024,)
+
+            # velocity
+            curr_rewards = anyskill_rewards + aux_rewards #(1024,)
             # anyskill_count[t] = anyskill_rewards #(5, 1024)
             rewards += curr_rewards
 

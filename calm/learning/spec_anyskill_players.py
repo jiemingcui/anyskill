@@ -67,7 +67,8 @@ class SpecAnyskillPlayer(common_player.CommonPlayer):
         return clamped_actions
 
     def run(self):
-        n_games = self.games_num
+        n_games = 20
+        # n_games = self.games_num
         render = self.render_env
         n_game_life = self.n_game_life
         is_determenistic = self.is_determenistic
@@ -108,7 +109,8 @@ class SpecAnyskillPlayer(common_player.CommonPlayer):
 
             done_indices = []
 
-            for n in range(self.max_steps):
+            max_steps = 500
+            for n in range(max_steps):
                 print("step is: ", n)
                 obs_dict = self.env_reset(done_indices)
                 action = self.get_action(obs_dict, is_determenistic)
