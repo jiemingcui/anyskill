@@ -44,6 +44,7 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
         self.RENDER = config['render']
         self._exp_sim = torch.zeros([32, 1024], device=self.device, dtype=torch.float32)
         self.clip_features = []
+        # self.delta = torch.zeros([1024], device=self.device, dtype=torch.float32)
         # self.clip_features = torch.zeros([1, 512], device=self.device, dtype=torch.float32)
         # self.motionclip_features = torch.zeros([1, 15, 3], device=self.device, dtype=torch.float32)
         self.motionclip_features = []
@@ -98,7 +99,7 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
             self._llc_actions[t] = llc_actions
 
             # average
-            anyskill_rewards, similarity = self.vec_env.env.task.compute_anyskill_reward(image_features_norm, self._text_latents,
+            anyskill_rewards, delta = self.vec_env.env.task.compute_anyskill_reward(image_features_norm, self._text_latents,
                                                                              self._latent_text_idx)
 
             # # max
@@ -139,7 +140,7 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
         # infos['disc_rewards'] = disc_rewards
 
 
-        wandb.log({"info/delta": similarity.mean().item()}, step)
+        wandb.log({"info/delta": delta.mean().item()}, step)
         wandb.log({"reward/spec_anyskill_reward": anyskill_rewards.mean().item()}, step)
         wandb.log({"reward/spec_aux_reward": aux_rewards.mean().item()}, step)
         wandb.log({"info/eposide": self.vec_env.env.task.eposide}, step)
@@ -278,10 +279,10 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
         batch_dict['returns'] = a2c_common.swap_and_flatten01(mb_returns)
         batch_dict['played_frames'] = self.batch_size
 
-        if self.counter % 150 == 1:
-
-            np.save(self.motionfile, self.motionclip_features)
-            np.save(self.imagefile, self.clip_features)
+        # if self.counter % 150 == 1:
+        #
+        #     np.save(self.motionfile, self.motionclip_features)
+        #     np.save(self.imagefile, self.clip_features)
         #
         # print("we have run {} steps and save data".format(self.counter))
 
