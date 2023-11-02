@@ -1,0 +1,8 @@
+texts:
+ - weight: 0.5
+   text: "put up one hand"
+ - weight: 0.5
+   text: "kick forward"
+#   text: "stand up with arms crossed"
+#   text: "kneeling"
+#   text: "stand up with both arms raised"
