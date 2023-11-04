@@ -265,7 +265,7 @@ def get_args(benchmark=False):
          "help": "In training, provide the caption file of CLIP"},
         {"name": "--render", "action": "store_true", "default": False,
          "help": "In train, whether to render the environment"},
-        {"name": "--wandb_counter", "type": int, "default": 5,
+        {"name": "--wandb_counter", "type": str, "default": "stand",
          "help": "Count the llc_step we use in training"},
 
     ]

@@ -233,8 +233,10 @@ def main():
     cfg['env']['text_file'] = args.text_file
     cfg_train['params']['config']['text_file'] = args.text_file
     cfg_train['params']['config']['render'] = args.render
+    cfg_train['params']['config']['wandb_counter'] = args.wandb_counter
     cfg_train['params']['config']['headless'] = args.headless
     cfg['env']['render'] = args.render
+    cfg['env']['wandb_counter'] = args.wandb_counter
     run_name = f"{args.render}_{str(args.wandb_counter)}_{time_str}"
 
     if args.track:
