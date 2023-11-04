@@ -41,7 +41,7 @@ import learning.calm_models as calm_models
 import learning.calm_network_builder as calm_network_builder
 from utils import anyskill
 
-skill_command = "kick forward"
+skill_command = "put up your hand"
 class AnyskillPlayer(common_player.CommonPlayer):
     def __init__(self, config):
         with open(os.path.join(os.getcwd(), config['llc_config']), 'r') as f:
@@ -60,9 +60,9 @@ class AnyskillPlayer(common_player.CommonPlayer):
 
         self._target_motion_index = torch.zeros((self.env.task.num_envs, 1), dtype=torch.long, device=self.device)
         self.anyskill = anyskill.anytest()
-        self.mlip_encoder = anyskill.FeatureExtractor()
-        self.text_latent = self.mlip_encoder.encode_texts([skill_command])
-        self.print_stats = True
+        self.text_encoder = anyskill.TextToFeature()
+        self.text_latent = self.text_encoder.encode_texts([skill_command])
+        self.print_stats = False
         self.skill_command = skill_command
 
 
