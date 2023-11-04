@@ -43,6 +43,9 @@ import learning.amp_datasets as amp_datasets
 
 class CommonAgent(a2c_continuous.A2CAgent):
     def __init__(self, base_name, config):
+        from run import device_id
+        config["device"]=device_id
+        
         a2c_common.A2CBase.__init__(self, base_name, config)
 
         self._load_config_params(config)

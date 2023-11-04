@@ -26,12 +26,13 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from isaacgym import gymapi
+from isaacgym import gymutil
+
 import os
 import sys
 import yaml
 
-from isaacgym import gymapi
-from isaacgym import gymutil
 
 import numpy as np
 import random
@@ -194,7 +195,7 @@ def parse_sim_params(args, cfg, cfg_train):
     return sim_params
 
 
-def get_args(benchmark=False):
+def get_args(device_id,benchmark=False):
     custom_parameters = [
         {"name": "--test", "action": "store_true", "default": False,
             "help": "Run trained policy, no training"},
@@ -265,7 +266,7 @@ def get_args(benchmark=False):
          "help": "In training, provide the caption file of CLIP"},
         {"name": "--render", "action": "store_true", "default": False,
          "help": "In train, whether to render the environment"},
-        {"name": "--wandb_counter", "type": str, "default": "stand",
+        {"name": "--wandb_counter", "type": int, "default": 5,
          "help": "Count the llc_step we use in training"},
 
     ]
@@ -283,9 +284,20 @@ def get_args(benchmark=False):
         description="RL Policy",
         custom_parameters=custom_parameters)
 
+    # 修改cuda编号 
+    # device_id = args.device_id   
+    args.compute_device_id=device_id  
+    args.graphics_device_id=device_id 
+    args.sim_device=f'cuda: {device_id}'
+    args.device = 'cuda'
+    args.device_id = device_id
+    args.rl_device = 'cuda:' + str(device_id)
+    
+    ###################################
+
     # allignment with examples
-    args.device_id = args.compute_device_id
-    args.device = args.sim_device_type if args.use_gpu_pipeline else 'cpu'
+    # args.device_id = args.compute_device_id
+    # args.device = args.sim_device_type if args.use_gpu_pipeline else 'cpu'
 
     if args.test:
         args.play = args.test

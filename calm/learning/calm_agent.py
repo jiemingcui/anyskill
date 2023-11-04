@@ -40,6 +40,8 @@ import time
 
 class CALMAgent(amp_agent.AMPAgent):
     def __init__(self, base_name, config):
+        from run import device_id
+        config["device"]=device_id
         super().__init__(base_name, config)
 
         self.model.a2c_network._env = self.vec_env.env

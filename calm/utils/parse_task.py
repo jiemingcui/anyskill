@@ -30,9 +30,7 @@ from env.tasks.humanoid import Humanoid
 from env.tasks.humanoid_amp import HumanoidAMP
 from env.tasks.humanoid_amp_getup import HumanoidAMPGetup
 from env.tasks.humanoid_special_anyskill import HumanoidSpecAnySKill
-# from env.tasks.humanoid_special_anyskill_scene import HumanoidSpecAnySKillScene
 from env.tasks.humanoid_general_anyskill import HumanoidGenAnySKill
-from env.tasks.humanoid_view_motion import HumanoidViewMotion
 from env.tasks.vec_task_wrappers import VecTaskPythonWrapper
 
 from isaacgym import rlgpu

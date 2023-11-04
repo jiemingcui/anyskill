@@ -3,7 +3,7 @@ import time
 import torch
 import argparse
 import numpy as np
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader 
 from Anyskill.network.evaluator import *
 from Anyskill.dataset.dataset import ASDataset
 # from Anyskill.utils.parser import test_options
@@ -24,11 +24,11 @@ def evaluation(img_emb, motion_emb, matching_score_sum, top_k_count, all_size):
 
 def anytest():
     # args = test_options()
-
+    from run  import device_id
     motion_encoder = MotionEncoderBuild(
         hidden_size=512,
         output_size=512,
-        device="cuda:0"
+        device=f"cuda:{device_id}"
     )
 
     evaluator = MotionImgEvaluator(motion_encoder)

@@ -1,0 +1,280 @@
+motions:
+ - file: "h_amp_humanoid_walk.npy"
+   weight: 0.0002
+   text: "loop"
+ - file: "h_t_005372_30fps_jump.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_13_17_clipped_05.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_13_29_clipped_07.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_17_10_clipped_02.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_79_02.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_interior_crawl.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_RL_Avatar_Atk_Kick_Motion.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_0005_SideSkip001.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_05_02_clipped.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_13_17_clipped_06.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_14_17_clipped_01.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_20_10.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_79_03.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_jumprope_longrope_clipped_clipped.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_Running_Backward.npy"
+   weight: 0.0002
+   text: "loop"
+ - file: "h_t_0005_SlowTrot001.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_05_07.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_13_17.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_14_17_clipped_02.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_20_13.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_79_04.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_jumprope_singlerope.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_stand-idle-to-crouch-idle.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_0007_Balance001.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_05_08_clipped.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_13_26_clipped_01.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_14_17.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_26_09.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_79_17.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_jump-to-endurance_clipped_clipped.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_walk_calling_m.npy"
+   weight: 0.0002
+   text: "loop"
+ - file: "h_t_0008_ChaCha001.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_06_10.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_13_26_clipped_02.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_14_25_clipped_01.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_26_10.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_action_baseball.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_Left_Turn.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_Walking_Backward.npy"
+   weight: 0.0002
+   text: "loop"
+ - file: "h_t_0008_Skipping001.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_06_15.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_13_26_clipped_03.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_14_25_clipped_02.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_49_06.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_action_pushup_clipped_02.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_Leg_Sweep.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_Walking_Turn_180.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_0017_WushuKicks001.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_10_01_clipped.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_13_29_clipped_01.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_14_25_clipped_03.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_49_20.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_climb-on-sloping-trunk-loop-c.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_Low_Crawl.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_walk_normal_m.npy"
+   weight: 0.0002
+   text: "loop"
+ - file: "h_t_0018_Bridge001.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_10_02.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_13_29_clipped_02.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_14_25_clipped_04.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_55_02_clipped.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_Crawling.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_market_customerbasket_idle_m_clipped.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_walk_tiptoe.npy"
+   weight: 0.0002
+   text: "loop"
+ - file: "h_t_0018_DanceTurns001.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_13_17_clipped_01.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_13_29_clipped_03.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_14_25.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_64_29.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_crouch-walk-slow-loop.npy"
+   weight: 0.0002
+   text: "loop"
+ - file: "h_t_Mma_Kick.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_Zombie_Walk.npy"
+   weight: 0.0002
+   text: "loop"
+ - file: "h_t_0018_DanceTurns002.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_13_17_clipped_02.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_13_29_clipped_04.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_17_03.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_74_06.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_Goalie_Throw_1.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_move_run_m_clipped.npy"
+   weight: 0.0002
+   text: "loop"
+ - file: "h_t_0018_Moonwalk001.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_13_17_clipped_03.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_13_29_clipped_05.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_17_05.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_75_06.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_Golf_Drive.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_move_walkfast_m_clipped.npy"
+   weight: 0.0002
+   text: "loop"
+ - file: "h_t_0018_TraditionalChineseDance001.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_13_17_clipped_04.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_13_29_clipped_06.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_17_10_clipped_01.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_75_09.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_Illegal_Elbow_Punch.npy"
+   weight: 0.0002
+   text: "pass"
+ - file: "h_t_right_turn.npy"
+   weight: 0.0002
+   text: "pass"

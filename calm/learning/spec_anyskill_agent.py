@@ -17,9 +17,13 @@ import learning.calm_models as calm_models
 import learning.calm_network_builder as calm_network_builder
 from utils import anyskill
 
+from .anyskill_agent import num_envs
 
 class SpecAnyskillAgent(common_agent.CommonAgent):
     def __init__(self, base_name, config):
+        from run import device_id
+        config["device"]=device_id
+        
         with open(os.path.join(os.getcwd(), config['llc_config']), 'r') as f:
             llc_config = yaml.load(f, Loader=yaml.SafeLoader)
             llc_config_params = llc_config['params']
@@ -30,7 +34,6 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
         self._task_size = self.vec_env.env.task.get_task_obs_size()
 
         self._llc_steps = config['llc_steps']
-        self._wandb_counter = config['wandb_counter']
         llc_checkpoint = config['llc_checkpoint']
         assert(llc_checkpoint != "")
         self._build_llc(llc_config_params, llc_checkpoint)
@@ -44,24 +47,22 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
         self.RENDER = config['render']
         self._exp_sim = torch.zeros([32, 1024], device=self.device, dtype=torch.float32)
         self.clip_features = []
-        # self.delta = torch.zeros([1024], device=self.device, dtype=torch.float32)
         # self.clip_features = torch.zeros([1, 512], device=self.device, dtype=torch.float32)
         # self.motionclip_features = torch.zeros([1, 15, 3], device=self.device, dtype=torch.float32)
         self.motionclip_features = []
         self.counter = 0
         self.headless = config['headless']
-        self.motionfile = "./output/motion_feature_spec" + str(self._wandb_counter) + ".npy"
-        self.imagefile = "./output/image_feature_spec" + str(self._wandb_counter) + ".npy"
+        self.motionfile = "./output/motion_feature_spec" + str(self._llc_steps) + ".npy"
+        self.imagefile = "./output/image_feature_spec" + str(self._llc_steps) + ".npy"
         return
 
     def env_step(self, actions, step):
         actions = self.preprocess_actions(actions)
         obs = self.obs['obs']
-        self._llc_actions = torch.zeros([self._llc_steps, 1024, 28], device=self.device, dtype=torch.float32)
-        anyskill_count = torch.zeros([self._llc_steps, 1024], device=self.device, dtype=torch.float32)
+        self._llc_actions = torch.zeros([self._llc_steps, num_envs, 28], device=self.device, dtype=torch.float32)
+        anyskill_count = torch.zeros([self._llc_steps, num_envs], device=self.device, dtype=torch.float32)
 
         rewards = 0.0
-        max_anyksill = torch.zeros([1024], device=self.device, dtype=torch.float32)
         disc_rewards = 0.0
         done_count = 0.0
         terminate_count = 0.0
@@ -73,11 +74,11 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
                 if self.headless == False:
                     images = self.vec_env.env.task.render_img()
                 else:
-                    # print("apply the headless mode")
+                    print("apply the headless mode")
                     images = self.vec_env.env.task.render_headless()
                 image_features = self.mlip_encoder.encode_images(images)
                 state_embeds = infos['state_embeds'][:, :15, :3]
-                # print("we have render")
+                print("we have render")
                 self.clip_features.append(image_features.data.cpu().numpy())
                 self.motionclip_features.append(state_embeds.data.cpu().numpy())
                 image_features_norm = image_features / image_features.norm(dim=-1, keepdim=True)
@@ -91,27 +92,19 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
             # eu_dis = F.pairwise_distance(image_features_norm, image_features_mlp_norm, keepdim=True)
             # cos_ids = F.cosine_similarity(image_features_norm, image_features_mlp_norm, dim=1)
 
+            anyskill_rewards, similarity = self.vec_env.env.task.compute_anyskill_reward(image_features_norm, self._text_latents,
+                                                                             self._latent_text_idx)
+            curr_rewards = anyskill_rewards
+            # curr_rewards = anyskill_rewards + aux_rewards #(1024,)
+            # anyskill_count[t] = anyskill_rewards #(5, 1024)
+            self._llc_actions[t] = llc_actions
+            rewards += curr_rewards
             done_count += curr_dones
             terminate_count += infos['terminate']
+            
             amp_obs = infos['amp_obs']
             curr_disc_reward = self._calc_disc_reward(amp_obs)
             disc_rewards += curr_disc_reward
-            self._llc_actions[t] = llc_actions
-
-            # average
-            anyskill_rewards, delta = self.vec_env.env.task.compute_anyskill_reward(image_features_norm, self._text_latents,
-                                                                             self._latent_text_idx)
-
-            # # max
-            # max_anyksill = torch.max(max_anyksill, anyskill_rewards)
-            # curr_rewards = max_anyksill
-
-            # curr_rewards = anyskill_rewards
-
-            # velocity
-            curr_rewards = anyskill_rewards + aux_rewards #(1024,)
-            # anyskill_count[t] = anyskill_rewards #(5, 1024)
-            rewards += curr_rewards
 
         # self._exp_sim[step] = anyskill_count.mean(dim=0) #(1024,)
         rewards /= self._llc_steps #(1024,)
@@ -123,24 +116,7 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
         infos['terminate'] = terminate
         infos['disc_rewards'] = disc_rewards
 
-        # # max
-        #     anyskill_rewards, similarity = self.vec_env.env.task.compute_anyskill_reward(image_features_norm, self._text_latents,
-        #                                                                      self._latent_text_idx)
-        #     curr_rewards = anyskill_rewards
-        #     rewards = torch.max(curr_rewards)
-        #
-        # # self._exp_sim[step] = anyskill_count.mean(dim=0) #(1024,)
-        # # rewards /= self._llc_steps #(1024,)
-        # disc_rewards /= self._llc_steps
-        # dones = torch.zeros_like(done_count)
-        # dones[done_count > 0] = 1.0
-        # terminate = torch.zeros_like(terminate_count)
-        # terminate[terminate_count > 0] = 1.0
-        # infos['terminate'] = terminate
-        # infos['disc_rewards'] = disc_rewards
-
-
-        wandb.log({"info/delta": delta.mean().item()}, step)
+        wandb.log({"info/similarity": similarity.mean().item()}, step)
         wandb.log({"reward/spec_anyskill_reward": anyskill_rewards.mean().item()}, step)
         wandb.log({"reward/spec_aux_reward": aux_rewards.mean().item()}, step)
         wandb.log({"info/eposide": self.vec_env.env.task.eposide}, step)
@@ -280,7 +256,7 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
         batch_dict['played_frames'] = self.batch_size
 
         # if self.counter % 150 == 1:
-        #
+
         #     np.save(self.motionfile, self.motionclip_features)
         #     np.save(self.imagefile, self.clip_features)
         #

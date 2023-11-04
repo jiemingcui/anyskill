@@ -1,10 +1,7 @@
+
 from utils.config import set_np_formatting, set_seed, get_args, parse_sim_params, load_cfg
 from utils.parse_task import parse_task
-
-from rl_games.algos_torch import torch_ext
-from rl_games.common import env_configurations, vecenv
-from rl_games.common.algo_observer import AlgoObserver
-from rl_games.torch_runner import Runner
+from env.tasks import humanoid_amp_task
 
 from learning import amp_agent
 from learning import amp_players
@@ -18,11 +15,6 @@ from learning import spec_anyskill_agent
 from learning import spec_anyskill_players
 from learning import spec_anyskill_network_builder
 
-# from learning import hrl_conditioned_agent
-# from learning import hrl_fsm_players
-# from learning import hrl_agent
-# from learning import hrl_players
-# from learning import hrl_network_builder
 
 from learning import calm_agent
 from learning import calm_players
@@ -30,9 +22,24 @@ from learning import calm_models
 from learning import calm_network_builder
 from learning import hrl_models
 
-from env.tasks import humanoid_amp_task
+from rl_games.algos_torch import torch_ext
+from rl_games.common import env_configurations, vecenv
+from rl_games.common.algo_observer import AlgoObserver
+from rl_games.torch_runner import Runner
 
 import datetime
+
+# python calm/run.py --task HumanoidSpecAnySKill --cfg_env calm/data/cfg/humanoid_anyskill.yaml --cfg_train calm/data/cfg/train/rlg/spec_anyskill.yaml --motion_file /home/zyr/workspace/anyskill/calm/data/motions/target_height_motions/motions.yaml --llc_checkpoint /home/zyr/workspace/anyskill/calm/nn/Humanoid_00014500.pth --track --headless --render --text_file calm/data/texts2-
+
+device_id=1
+
+# from learning import hrl_conditioned_agent
+# from learning import hrl_fsm_players
+# from learning import hrl_agent
+# from learning import hrl_players
+# from learning import hrl_network_builder
+
+
 
 try:
     import wandb
@@ -46,22 +53,35 @@ run_name = None
 
 
 def create_rlgpu_env(**kwargs):
-    use_horovod = cfg_train['params']['config'].get('multi_gpu', False)
-    if use_horovod:
-        import horovod.torch as hvd
+    global device_id,cfg_train,args
+    
+    # use_horovod = cfg_train['params']['config'].get('multi_gpu', False)
+    # if use_horovod:
+    #     import horovod.torch as hvd
 
-        rank = hvd.rank()
-        print("Horovod rank: ", rank)
+    #     rank = hvd.rank()
+    #     print("Horovod rank: ", rank)
 
-        cfg_train['params']['seed'] = cfg_train['params']['seed'] + rank
+    #     cfg_train['params']['seed'] = cfg_train['params']['seed'] + rank
 
-        args.device = 'cuda'
-        args.device_id = rank
-        args.rl_device = 'cuda:' + str(rank)
+    #     args.device = 'cuda'
+    #     args.device_id = rank
+    #     args.rl_device = 'cuda:' + str(rank)
 
-        cfg['rank'] = rank
-        cfg['rl_device'] = 'cuda:' + str(rank)
+    #     cfg['rank'] = rank
+    #     cfg['rl_device'] = 'cuda:' + str(rank)
+    
+    print("\nargs:\n" ,args)
 
+    # cfg_train['params']['seed'] = cfg_train['params']['seed'] + device_id
+
+    args.device = 'cuda'
+    args.device_id = device_id
+    args.rl_device = 'cuda:' + str(device_id)
+
+    cfg['rank'] = device_id
+    cfg['rl_device'] = 'cuda:' + str(device_id)
+    
     sim_params = parse_sim_params(args, cfg, cfg_train)
     task, env = parse_task(args, cfg, cfg_train, sim_params)
 
@@ -162,10 +182,7 @@ class RLGPUEnv(vecenv.IVecEnv):
         return info
 
 
-vecenv.register('RLGPU', lambda config_name, num_actors, **kwargs: RLGPUEnv(config_name, num_actors, **kwargs))
-env_configurations.register('rlgpu', {
-    'env_creator': lambda **kwargs: create_rlgpu_env(**kwargs),
-    'vecenv_type': 'RLGPU'})
+
 
 
 def build_alg_runner(algo_observer):
@@ -204,9 +221,10 @@ def main():
     global cfg
     global cfg_train
     global run_name
-
+    global device_id
+    
     set_np_formatting()
-    args = get_args()
+    args = get_args(device_id=device_id)
     cfg, cfg_train, logdir = load_cfg(args)
 
     time_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -233,10 +251,8 @@ def main():
     cfg['env']['text_file'] = args.text_file
     cfg_train['params']['config']['text_file'] = args.text_file
     cfg_train['params']['config']['render'] = args.render
-    cfg_train['params']['config']['wandb_counter'] = args.wandb_counter
     cfg_train['params']['config']['headless'] = args.headless
     cfg['env']['render'] = args.render
-    cfg['env']['wandb_counter'] = args.wandb_counter
     run_name = f"{args.render}_{str(args.wandb_counter)}_{time_str}"
 
     if args.track:
@@ -252,7 +268,12 @@ def main():
     vargs = vars(args)
 
     algo_observer = RLGPUAlgoObserver()
-
+    
+    vecenv.register('RLGPU', lambda config_name, num_actors, **kwargs: RLGPUEnv(config_name, num_actors, **kwargs))
+    env_configurations.register('rlgpu', {
+        'env_creator': lambda **kwargs: create_rlgpu_env(**kwargs),
+        'vecenv_type': 'RLGPU'})
+    
     runner = build_alg_runner(algo_observer)
     runner.load(cfg_train)
     runner.reset()

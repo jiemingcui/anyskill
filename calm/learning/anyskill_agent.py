@@ -17,8 +17,14 @@ import learning.calm_network_builder as calm_network_builder
 from utils import anyskill
 
 
+num_envs=512
+
+
 class AnyskillAgent(common_agent.CommonAgent):
     def __init__(self, base_name, config):
+        from run import device_id
+        config["device"]=device_id
+        
         with open(os.path.join(os.getcwd(), config['llc_config']), 'r') as f:
             llc_config = yaml.load(f, Loader=yaml.SafeLoader)
             llc_config_params = llc_config['params']
@@ -44,9 +50,10 @@ class AnyskillAgent(common_agent.CommonAgent):
         return
 
     def env_step(self, actions):
+        global num_envs
         actions = self.preprocess_actions(actions)
         obs = self.obs['obs']
-        self._llc_actions = torch.zeros([self._llc_steps, 1024, 28], device=self.device, dtype=torch.float32)
+        self._llc_actions = torch.zeros([self._llc_steps, num_envs, 28], device=self.device, dtype=torch.float32)
         rewards = 0.0
         disc_rewards = 0.0
         done_count = 0.0

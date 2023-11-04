@@ -43,6 +43,9 @@ import learning.common_agent as common_agent
 
 class AMPAgent(common_agent.CommonAgent):
     def __init__(self, base_name, config):
+        from run import device_id
+        config["device"]=device_id
+        
         super().__init__(base_name, config)
 
         if self._normalize_amp_input:
