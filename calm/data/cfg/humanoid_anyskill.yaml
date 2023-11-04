@@ -6,7 +6,8 @@ env:
 #  episodeLength: 300
   isFlagrun: False
   enableDebugVis: False
-  
+  enableMotionSave: True
+
   pdControl: True
   powerScale: 1.0
   controlFrequencyInv: 2 # 30 Hz
