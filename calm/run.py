@@ -10,6 +10,11 @@ from learning import amp_agent
 from learning import amp_players
 from learning import amp_models
 from learning import amp_network_builder
+from learning import calm_agent
+from learning import calm_players
+from learning import calm_models
+from learning import calm_network_builder
+from learning import hrl_models
 
 from learning import anyskill_network_builder
 from learning import anyskill_players
@@ -17,18 +22,7 @@ from learning import anyskill_agent
 from learning import spec_anyskill_agent
 from learning import spec_anyskill_players
 from learning import spec_anyskill_network_builder
-
-# from learning import hrl_conditioned_agent
-# from learning import hrl_fsm_players
-# from learning import hrl_agent
-# from learning import hrl_players
-# from learning import hrl_network_builder
-
-from learning import calm_agent
-from learning import calm_players
-from learning import calm_models
-from learning import calm_network_builder
-from learning import hrl_models
+from learning import scene_anyskill_players
 
 from env.tasks import humanoid_amp_task
 
@@ -191,6 +185,11 @@ def build_alg_runner(algo_observer):
     runner.model_builder.network_factory.register_builder('spec_anyskill', lambda **kwargs: spec_anyskill_network_builder.SpecAnyskillBuilder())
     runner.player_factory.register_builder('spec_anyskill', lambda **kwargs: spec_anyskill_players.SpecAnyskillPlayer(**kwargs))
 
+    runner.model_builder.model_factory.register_builder('scene_anyskill', lambda network, **kwargs: hrl_models.ModelHRLContinuous(network))
+    runner.algo_factory.register_builder('scene_anyskill', lambda **kwargs: spec_anyskill_agent.SpecAnyskillAgent(**kwargs))
+    runner.model_builder.network_factory.register_builder('scene_anyskill', lambda **kwargs: spec_anyskill_network_builder.SpecAnyskillBuilder())
+    runner.player_factory.register_builder('scene_anyskill', lambda **kwargs: scene_anyskill_players.SceneAnyskillPlayer(**kwargs))
+
     runner.algo_factory.register_builder('calm', lambda **kwargs: calm_agent.CALMAgent(**kwargs))
     runner.player_factory.register_builder('calm', lambda **kwargs: calm_players.CALMPlayer(**kwargs))
     runner.model_builder.model_factory.register_builder('calm', lambda network, **kwargs: calm_models.ModelCALMContinuous(network))
@@ -236,6 +235,7 @@ def main():
     cfg_train['params']['config']['wandb_counter'] = args.wandb_counter
     cfg_train['params']['config']['headless'] = args.headless
     cfg['env']['render'] = args.render
+    cfg['env']['articulated'] = args.articulated
     cfg['env']['wandb_counter'] = args.wandb_counter
     run_name = f"{args.render}_{str(args.wandb_counter)}_{time_str}"
 

@@ -60,6 +60,7 @@ class Humanoid(BaseTask):
         
         key_bodies = self.cfg["env"]["keyBodies"]
         self._setup_character_props(key_bodies)
+        self._articulated = self.cfg["env"]["articulated"]
 
         self.cfg["env"]["numObservations"] = self.get_obs_size()
         self.cfg["env"]["numActions"] = self.get_action_size()
@@ -73,18 +74,21 @@ class Humanoid(BaseTask):
         self.dt = self.control_freq_inv * sim_params.dt
 
         # get gym GPU state tensors
-        actor_root_state = self.gym.acquire_actor_root_state_tensor(self.sim)
-        dof_state_tensor = self.gym.acquire_dof_state_tensor(self.sim)
-        sensor_tensor = self.gym.acquire_force_sensor_tensor(self.sim)
-        rigid_body_state = self.gym.acquire_rigid_body_state_tensor(self.sim)
-        contact_force_tensor = self.gym.acquire_net_contact_force_tensor(self.sim)
+        actor_root_state = self.gym.acquire_actor_root_state_tensor(self.sim) #2048,13
+        dof_state_tensor = self.gym.acquire_dof_state_tensor(self.sim) #29696,2
+        sensor_tensor = self.gym.acquire_force_sensor_tensor(self.sim) #2048,6
+        rigid_body_state = self.gym.acquire_rigid_body_state_tensor(self.sim) #18432,13 + 2*1024
+        contact_force_tensor = self.gym.acquire_net_contact_force_tensor(self.sim) #18432,3
+        self._initial_state = np.copy(self.gym.get_sim_rigid_body_states(self.sim, gymapi.STATE_ALL))
 
         sensors_per_env = 2
         self.vec_sensor_tensor = gymtorch.wrap_tensor(sensor_tensor).view(self.num_envs, sensors_per_env * 6)
 
         dof_force_tensor = self.gym.acquire_dof_force_tensor(self.sim)
-        self.dof_force_tensor = gymtorch.wrap_tensor(dof_force_tensor).view(self.num_envs, self.num_dof)
-
+        if self._articulated:
+            self.dof_force_tensor = gymtorch.wrap_tensor(dof_force_tensor).view(self.num_envs, self.num_dof + 1)
+        else:
+            self.dof_force_tensor = gymtorch.wrap_tensor(dof_force_tensor).view(self.num_envs, self.num_dof)
         self.gym.refresh_dof_state_tensor(self.sim)
         self.gym.refresh_actor_root_state_tensor(self.sim)
         self.gym.refresh_rigid_body_state_tensor(self.sim)
@@ -92,6 +96,11 @@ class Humanoid(BaseTask):
 
         self._root_states = gymtorch.wrap_tensor(actor_root_state)
         num_actors = self.get_num_actors_per_env()
+
+        self._rigid_body_state = gymtorch.wrap_tensor(rigid_body_state)
+        bodies_per_env = self._rigid_body_state.shape[0] // self.num_envs
+        rigid_body_state_reshaped = self._rigid_body_state.view(self.num_envs, bodies_per_env, rigid_body_state.shape[-1])
+        self._rigid_state_tensor = self._rigid_body_state.view(self.num_envs, bodies_per_env, rigid_body_state.shape[-1])
 
         # rigid_body_state = self.gym.acquire_rigid_body_state_tensor(self.sim)
         # rigid_state_tensor = gymtorch.wrap_tensor(rigid_body_state)
@@ -110,14 +119,11 @@ class Humanoid(BaseTask):
         dofs_per_env = self._dof_state.shape[0] // self.num_envs
         self._dof_pos = self._dof_state.view(self.num_envs, dofs_per_env, 2)[..., :self.num_dof, 0]
         self._dof_vel = self._dof_state.view(self.num_envs, dofs_per_env, 2)[..., :self.num_dof, 1]
-        
+        self._o_pos = self._dof_state.view(self.num_envs, dofs_per_env, 2)[..., self.num_dof:, 0]
+        self._o_vel = self._dof_state.view(self.num_envs, dofs_per_env, 2)[..., self.num_dof:, 1]
+
         self._initial_dof_pos = torch.zeros_like(self._dof_pos, device=self.device, dtype=torch.float)
         self._initial_dof_vel = torch.zeros_like(self._dof_vel, device=self.device, dtype=torch.float)
-        
-        self._rigid_body_state = gymtorch.wrap_tensor(rigid_body_state)
-        bodies_per_env = self._rigid_body_state.shape[0] // self.num_envs
-        rigid_body_state_reshaped = self._rigid_body_state.view(self.num_envs, bodies_per_env, 13)
-        self._rigid_state_tensor = self._rigid_body_state.view(self.num_envs, bodies_per_env, 13)
 
         self._rigid_body_pos = rigid_body_state_reshaped[..., :self.num_bodies, 0:3]
         self._rigid_body_rot = rigid_body_state_reshaped[..., :self.num_bodies, 3:7]
@@ -236,7 +242,8 @@ class Humanoid(BaseTask):
         return
 
     def _build_termination_heights(self):
-        head_term_height = 0.3
+        head_term_height = 0.15
+        # head_term_height = 0.3
         shield_term_height = 0.32
 
         termination_height = self.cfg["env"]["terminationHeight"]
@@ -460,12 +467,15 @@ class Humanoid(BaseTask):
         self._humanoid_root_states[env_ids] = self._initial_humanoid_root_states[env_ids]
         self._dof_pos[env_ids] = self._initial_dof_pos[env_ids]
         self._dof_vel[env_ids] = self._initial_dof_vel[env_ids]
+
         return
 
     def pre_physics_step(self, actions):
         self.actions = actions.to(self.device).clone()
         if self._pd_control:
             pd_tar = self._action_to_pd_targets(self.actions)
+            if self._articulated:
+                pd_tar = torch.cat([pd_tar, torch.zeros([self.num_envs, 1], device=self.device)], dim=1)
             pd_tar_tensor = gymtorch.unwrap_tensor(pd_tar)
             self.gym.set_dof_position_target_tensor(self.sim, pd_tar_tensor)
         else:
@@ -538,12 +548,12 @@ class Humanoid(BaseTask):
         self._cam_prev_char_pos = torch.zeros([self.num_envs, 3], device=self.device, dtype=torch.float32)
         # self._cam_prev_char_pos = self._humanoid_root_states[0, 0:3].cpu().numpy()
 
-        # cam_pos = gymapi.Vec3(self._cam_prev_char_pos[0, 0] + 3.0,
-        #                       self._cam_prev_char_pos[0, 1],
-        #                       1.0)
-        cam_pos = gymapi.Vec3(self._cam_prev_char_pos[0, 0],
-                              self._cam_prev_char_pos[0, 1] - 3.0,
+        cam_pos = gymapi.Vec3(self._cam_prev_char_pos[0, 0] + 3.0,
+                              self._cam_prev_char_pos[0, 1] - 0.5,
                               1.0)
+        # cam_pos = gymapi.Vec3(self._cam_prev_char_pos[0, 0],
+        #                       self._cam_prev_char_pos[0, 1] - 3.0,
+        #                       1.0)
         cam_target = gymapi.Vec3(self._cam_prev_char_pos[0, 0],
                                  self._cam_prev_char_pos[0, 1],
                                  1.0)

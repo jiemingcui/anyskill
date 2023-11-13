@@ -41,10 +41,8 @@ import learning.calm_models as calm_models
 import learning.calm_network_builder as calm_network_builder
 from utils import anyskill
 
-# skill_command = "play tennis"
-# skill_command = "put up one hand"
-skill_command = "kick"
-class AnyskillPlayer(common_player.CommonPlayer):
+skill_command = "put up your hand"
+class SceneAnyskillPlayer(common_player.CommonPlayer):
     def __init__(self, config):
         with open(os.path.join(os.getcwd(), config['llc_config']), 'r') as f:
             llc_config = yaml.load(f, Loader=yaml.SafeLoader)
@@ -62,9 +60,9 @@ class AnyskillPlayer(common_player.CommonPlayer):
 
         self._target_motion_index = torch.zeros((self.env.task.num_envs, 1), dtype=torch.long, device=self.device)
         self.anyskill = anyskill.anytest()
-        self.mlip_encoder = anyskill.FeatureExtractor()
-        self.text_latent = self.mlip_encoder.encode_texts([skill_command])
-        self.print_stats = True
+        self.text_encoder = anyskill.TextToFeature()
+        self.text_latent = self.text_encoder.encode_texts([skill_command])
+        self.print_stats = False
         self.skill_command = skill_command
 
 
@@ -97,8 +95,7 @@ class AnyskillPlayer(common_player.CommonPlayer):
         return clamped_actions
 
     def run_anyskill(self):
-        # n_games = self.games_num
-        n_games = 20
+        n_games = self.games_num
         render = self.render_env
         n_game_life = self.n_game_life
         is_determenistic = self.is_determenistic
@@ -139,8 +136,7 @@ class AnyskillPlayer(common_player.CommonPlayer):
 
             done_indices = []
 
-            max_steps = 500
-            for n in range(max_steps):
+            for n in range(self.max_steps):
                 self.obs = self.env_reset(done_indices)
                 obs = self.obs['obs']
 
@@ -158,9 +154,9 @@ class AnyskillPlayer(common_player.CommonPlayer):
 
                 self._post_step(info)
 
-                # if render:
-                #     self.env.render(mode = 'human')
-                #     time.sleep(self.render_sleep)
+                if render:
+                    self.env.render(mode = 'human')
+                    time.sleep(self.render_sleep)
 
                 all_done_indices = done.nonzero(as_tuple=False)
                 done_indices = all_done_indices[::self.num_agents]
@@ -313,12 +309,9 @@ class AnyskillPlayer(common_player.CommonPlayer):
 
     def get_skill_command(self):
         global skill_command
-        skill_command = "kick"
-        # skill_command = "put up one hand"
-
-        # while True:
-        #     inputs = input("please input the command: ")
-        #     skill_command = inputs
+        while True:
+            inputs = input("please input the command: ")
+            skill_command = inputs
 
     def run(self):
         skill_test = threading.Thread(target=self.get_skill_command)

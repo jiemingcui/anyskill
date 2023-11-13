@@ -159,8 +159,9 @@ class CommonAgent(a2c_continuous.A2CAgent):
                         self.self_play_manager.update(self)
 
                 if self.save_freq > 0:
+                    # if self.vec_env.env.task.delta > 0:
                     if epoch_num % self.save_freq == 0:
-                        self.save(model_output_file)
+                        self.save(model_output_file) # which is not the best models
 
                         if self._save_intermediate:
                             int_model_output_file = model_output_file + '_' + str(epoch_num).zfill(8)

@@ -106,10 +106,10 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
             # max_anyksill = torch.max(max_anyksill, anyskill_rewards)
             # curr_rewards = max_anyksill
 
-            # curr_rewards = anyskill_rewards
+            curr_rewards = anyskill_rewards
 
             # velocity
-            curr_rewards = anyskill_rewards + aux_rewards #(1024,)
+            # curr_rewards = anyskill_rewards + aux_rewards #(1024,)
             # anyskill_count[t] = anyskill_rewards #(5, 1024)
             rewards += curr_rewards
 
