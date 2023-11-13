@@ -35,13 +35,17 @@ python calm/run_iter.py --test --task HumanoidAMPGetup --num_envs 16 --cfg_env c
 python calm/run.py --task HumanoidSpecAnySKill --cfg_env calm/data/cfg/humanoid_anyskill.yaml --cfg_train calm/data/cfg/train/rlg/spec_anyskill.yaml --motion_file /home/cjm/CALM/calm/data/motions/target_height_motions/motions.yaml --llc_checkpoint /home/cjm/CALM/output/low-level/nn/Humanoid_00014500.pth --track --text_file calm/data/texts.yaml --wandb_project_name special_policy
 ```
 `--llc_checkpoint` specifies the checkpoint to use for the low-level controller. `--text_file` specifies motion captions and their weights.
-
-##### General policy training
-```
-python calm/run.py --task HumanoidGenAnySKill --cfg_env calm/data/cfg/humanoid_anyskill.yaml --cfg_train calm/data/cfg/train/rlg/gen_anyskill.yaml --motion_file /home/cjm/CALM/calm/data/motions/target_height_motions/motions.yaml --llc_checkpoint /home/cjm/CALM/output/low-level/nn/Humanoid_00014500.pth --track --text_file calm/data/texts.yaml --wandb_project_name general_policy
-```
 For both training method, we use pretrained model to extract the image features by default. If you want to render with camera, you just need add `--render` at the end.
 
+##### Rigid scene policy training
+```
+python calm/run.py --task HumanoidSpecAnySKillRigid --cfg_env calm/data/cfg/humanoid_anyskill.yaml --cfg_train calm/data/cfg/train/rlg/spec_anyskill.yaml --motion_file /home/cjm/CALM/calm/data/motions/target_height_motions/motions.yaml --llc_checkpoint /home/cjm/CALM/output/low-level/nn/Humanoid_00014500.pth --track --text_file calm/data/texts.yaml --render
+```
+
+##### Articulated scene policy training
+```
+python calm/run.py --task HumanoidSpecAnySKillArti --cfg_env calm/data/cfg/humanoid_anyskill.yaml --cfg_train calm/data/cfg/train/rlg/scene_anyskill.yaml --motion_file /home/cjm/CALM/calm/data/motions/target_height_motions/motions.yaml --llc_checkpoint /home/cjm/CALM/output/low-level/nn/Humanoid_00014500.pth --track --text_file calm/data/texts_scene.yaml --wandb_project_name special_policy_scene --articulated --render
+```
 &nbsp;
 
 ### AMP
