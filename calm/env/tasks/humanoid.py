@@ -548,12 +548,15 @@ class Humanoid(BaseTask):
         self._cam_prev_char_pos = torch.zeros([self.num_envs, 3], device=self.device, dtype=torch.float32)
         # self._cam_prev_char_pos = self._humanoid_root_states[0, 0:3].cpu().numpy()
 
-        cam_pos = gymapi.Vec3(self._cam_prev_char_pos[0, 0] + 3.0,
-                              self._cam_prev_char_pos[0, 1] - 0.5,
-                              1.0)
-        # cam_pos = gymapi.Vec3(self._cam_prev_char_pos[0, 0],
-        #                       self._cam_prev_char_pos[0, 1] - 3.0,
+        # cam_pos = gymapi.Vec3(self._cam_prev_char_pos[0, 0] + 3.0,
+        #                       self._cam_prev_char_pos[0, 1] - 0.5,
         #                       1.0)
+        # cam_pos = gymapi.Vec3(self._cam_prev_char_pos[0, 0] + 3.0,
+        #                       self._cam_prev_char_pos[0, 1],
+        #                       1.0) # zheng
+        cam_pos = gymapi.Vec3(self._cam_prev_char_pos[0, 0],
+                              self._cam_prev_char_pos[0, 1] - 3.0,
+                              1.0) # ce
         cam_target = gymapi.Vec3(self._cam_prev_char_pos[0, 0],
                                  self._cam_prev_char_pos[0, 1],
                                  1.0)

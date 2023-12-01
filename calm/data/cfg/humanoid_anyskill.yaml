@@ -40,6 +40,7 @@ env:
   contactBodies: ["right_foot", "left_foot"]
   terminationHeight: 0.05
 #  terminationHeight: 0.15
+#  enableEarlyTermination: False
   enableEarlyTermination: True
 
   tarSpeedMin: 0

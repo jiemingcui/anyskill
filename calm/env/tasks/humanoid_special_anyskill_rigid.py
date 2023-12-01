@@ -70,14 +70,23 @@ class HumanoidSpecAnySKillRigid(HumanoidAMPGetup):
 
     def _reset_target(self, env_ids):
         n = len(env_ids)
-        init_dist = 1 * torch.ones([n], dtype=self._target_states.dtype, device=self._target_states.device)
+        init_dist = 3 * torch.ones([n], dtype=self._target_states.dtype, device=self._target_states.device)
         init_theta = 0 * np.pi * torch.ones([n], dtype=self._target_states.dtype, device=self._target_states.device)
-        self._target_states[env_ids, 0] = init_dist * torch.cos(init_theta) + self._initial_humanoid_root_states[env_ids, 0]
-        self._target_states[env_ids, 1] = init_dist * torch.sin(init_theta) + self._initial_humanoid_root_states[env_ids, 1]
-        self._target_states[env_ids, 2] = 0.9
+        # self._target_states[env_ids, 0] = init_dist * torch.cos(init_theta) + self._initial_humanoid_root_states[env_ids, 0]
+        # self._target_states[env_ids, 1] = init_dist * torch.sin(init_theta) + self._initial_humanoid_root_states[env_ids, 1]
+        # soccerball
+        # self._target_states[env_ids, 2] = 0.1
+        # pillar
+        # self._target_states[env_ids, 2] = 0.9
 
-        init_rot_theta = np.pi * torch.ones([n], dtype=self._target_states.dtype, device=self._target_states.device)
-        axis = torch.tensor([0.0, 0.0, 1.0], dtype=self._target_states.dtype, device=self._target_states.device)
+        # chair
+        self._target_states[env_ids, 0] = 0.448
+        self._target_states[env_ids, 1] = 0.448
+        self._target_states[env_ids, 2] = 0.448
+
+        init_rot_theta = 0.5 * np.pi * torch.ones([n], dtype=self._target_states.dtype, device=self._target_states.device)
+        # init_rot_theta = np.pi * torch.ones([n], dtype=self._target_states.dtype, device=self._target_states.device)
+        axis = torch.tensor([1.0, 0.0, 0.0], dtype=self._target_states.dtype, device=self._target_states.device)
         init_rot = quat_from_angle_axis(init_rot_theta, axis)
 
         self._target_states[env_ids, 3:7] = init_rot
@@ -116,15 +125,22 @@ class HumanoidSpecAnySKillRigid(HumanoidAMPGetup):
 
     def _load_target_asset(self):
         asset_root = "calm/data/assets/mjcf/"
-        asset_file = "pillar.urdf"
+        asset_file = "chair.urdf"
+        # asset_file = "soccerball.urdf"
         # asset_file = "pillar.urdf"
 
         asset_options = gymapi.AssetOptions()
+        # asset_options.fix_base_link = True
+
         asset_options.angular_damping = 0.01
         asset_options.linear_damping = 0.01
-        asset_options.max_angular_velocity = 100.0
-        asset_options.density = 30.0
+        # asset_options.max_angular_velocity = 100.0
+        # chair
+        asset_options.density = 50.0
+        # asset_options.density = 50.0
+
         asset_options.default_dof_drive_mode = gymapi.DOF_MODE_NONE
+        # # # for chair
 
         self._target_asset = self.gym.load_asset(self.sim, asset_root, asset_file, asset_options)
         return
@@ -149,6 +165,10 @@ class HumanoidSpecAnySKillRigid(HumanoidAMPGetup):
 
         default_pose = gymapi.Transform()
         default_pose.p.x = 1.0
+
+        # for chair
+        # default_pose.r = gymapi.Quat(0,0,0,1)
+        default_pose.r = gymapi.Quat(0.5, 0.5, 0.5, 0.5)
 
         target_handle = self.gym.create_actor(env_ptr, self._target_asset, default_pose, "target", col_group,
                                               col_filter, segmentation_id)
@@ -424,7 +444,7 @@ class HumanoidSpecAnySKillRigid(HumanoidAMPGetup):
         # # self._exp_sim()
 
         self._similarity = similarity
-        return clip_reward, delta
+        return clip_reward, delta, similarity
 
     def _update_task(self):
         reset_task_mask = self.progress_buf >= self._heading_change_steps

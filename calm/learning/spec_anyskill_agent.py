@@ -43,6 +43,8 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
         self.text_file = config['text_file']
         self.RENDER = config['render']
         self._exp_sim = torch.zeros([32, 1024], device=self.device, dtype=torch.float32)
+        self._anyskill_count = torch.zeros([self.horizon_length*5, 1024], device=self.device, dtype=torch.float32)
+
         self.clip_features = []
         # self.delta = torch.zeros([1024], device=self.device, dtype=torch.float32)
         # self.clip_features = torch.zeros([1, 512], device=self.device, dtype=torch.float32)
@@ -99,7 +101,7 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
             self._llc_actions[t] = llc_actions
 
             # average
-            anyskill_rewards, delta = self.vec_env.env.task.compute_anyskill_reward(image_features_norm, self._text_latents,
+            anyskill_rewards, delta, similarity = self.vec_env.env.task.compute_anyskill_reward(image_features_norm, self._text_latents,
                                                                              self._latent_text_idx)
 
             # # max
@@ -111,6 +113,13 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
             # velocity
             # curr_rewards = anyskill_rewards + aux_rewards #(1024,)
             # anyskill_count[t] = anyskill_rewards #(5, 1024)
+
+            # # sliding window
+            # idx = 5 * step + t
+            # self._anyskill_count[idx] = anyskill_rewards
+            # exp = torch.mean(anyskill_count[:8, :], dim=0)
+            # curr_rewards -= exp
+
             rewards += curr_rewards
 
         # self._exp_sim[step] = anyskill_count.mean(dim=0) #(1024,)
@@ -144,6 +153,7 @@ class SpecAnyskillAgent(common_agent.CommonAgent):
         wandb.log({"reward/spec_anyskill_reward": anyskill_rewards.mean().item()}, step)
         wandb.log({"reward/spec_aux_reward": aux_rewards.mean().item()}, step)
         wandb.log({"info/eposide": self.vec_env.env.task.eposide}, step)
+        wandb.log({"info/clip_similarity": delta.mean().item()}, step)
         # wandb.log({"info/eu_dis": eu_dis.mean().item()}, step)
         # wandb.log({"info/cos_dis": cos_ids.mean().item()}, step)
         wandb.log({"info/step": step}, step)

@@ -1,6 +1,8 @@
 texts:
  - weight: 1.0
-   text: "face the door, open the door"
+   text: "kick the door"
+#   text: "around the door"
+#   text: "face the door, open the door"
 #   text: "back to the door, open the door"
 #   text: "open the door with body"
 #   text: "one foot off-ground, open the door"

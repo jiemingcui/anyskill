@@ -1,5 +1,5 @@
 import torch
-
+import time
 from isaacgym import gymtorch
 
 from env.tasks.humanoid_amp import HumanoidAMP
@@ -36,6 +36,7 @@ class HumanoidViewMotion(HumanoidAMP):
 
     def post_physics_step(self):
         super().post_physics_step()
+        time.sleep(0.1)
         self._motion_sync()
         return
     
