@@ -15,7 +15,7 @@ pip install -r requirements.txt
 
 First, a CALM model can be trained to imitate a dataset of motions clips using the following command:
 ```
-python calm/run_iter.py --task HumanoidAMPGetup --cfg_env calm/data/cfg/humanoid_calm_sword_shield_getup.yaml --cfg_train calm/data/cfg/train/rlg/calm_humanoid.yaml --motion_file ./motions/motions_155.yaml --headless  --track
+python calm/run_iter.py --task HumanoidAMPGetup --cfg_env calm/data/cfg/humanoid.yaml --cfg_train calm/data/cfg/train/rlg/calm_humanoid.yaml --motion_file ./motions/motions_155.yaml --headless  --track
 ```
 `--motion_file` can be used to specify a dataset of motion clips that the model should imitate. 
 The task `HumanoidAMPGetup` will train a model to imitate a dataset of motion clips and get up after falling.
@@ -25,7 +25,7 @@ simulation, simply remove this flag. To test a trained model, use the following 
 
 ##### Test the trained low-level controller model
 ```
-python calm/run_iter.py --test --task HumanoidAMPGetup --num_envs 16 --cfg_env calm/data/cfg/humanoid_calm_sword_shield_getup.yaml --cfg_train calm/data/cfg/train/rlg/calm_humanoid.yaml --motion_file ./motions/motions_155.yaml --checkpoint [path_to_calm_checkpoint]
+python calm/run_iter.py --test --task HumanoidAMPGetup --num_envs 16 --cfg_env calm/data/cfg/humanoid\.yaml --cfg_train calm/data/cfg/train/rlg/calm_humanoid.yaml --motion_file ./motions/motions_155.yaml --checkpoint [path_to_calm_checkpoint]
 ```
 
 &nbsp;
