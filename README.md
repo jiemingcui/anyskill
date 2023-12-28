@@ -25,7 +25,7 @@ simulation, simply remove this flag. To test a trained model, use the following 
 
 ##### Test the trained low-level controller model
 ```
-python calm/run_iter.py --test --task HumanoidAMPGetup --num_envs 16 --cfg_env calm/data/cfg/humanoid\.yaml --cfg_train calm/data/cfg/train/rlg/calm_humanoid.yaml --motion_file ./motions/motions_155.yaml --checkpoint [path_to_calm_checkpoint]
+python calm/run_iter.py --test --task HumanoidAMPGetup --num_envs 16 --cfg_env calm/data/cfg/humanoid.yaml --cfg_train calm/data/cfg/train/rlg/calm_humanoid.yaml --motion_file ./motions/motions_155.yaml --checkpoint [path_to_calm_checkpoint]
 ```
 
 &nbsp;
