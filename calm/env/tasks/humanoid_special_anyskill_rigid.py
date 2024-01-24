@@ -423,15 +423,16 @@ class HumanoidSpecAnySKillRigid(HumanoidAMPGetup):
         clip_reward = 0.8 * similarity
 
         # # global
-        # alpha = 0.5
-        # similarity.unsqueeze(1)
-        # delta.unsqueeze(1)
-        # clip_reward = torch.zeros_like(similarity)
-        # for i in range(1024):
-        #     proj = (torch.dot(similarity[i], delta[i]) / torch.norm(delta[i], p=2)**2) * delta
-        #     term1 = alpha * proj * similarity[i]
-        #     term2 = (1-alpha) * delta[i]
-        #     clip_reward[i] = 1 - 0.5 * torch.norm(term1 + term2, p=2)**2
+        # # b = a humanoid
+        # # l = kneel
+        # alpha = torch.tensor(0.5)
+        # # similarity.unsqueeze(1)
+        # s = img_features_norm
+        # g = text_features_norm[corresponding_id]
+        # projL_s = torch.nn.functional.normalize(s, p=2, dim=0)
+        # term1 = alpha * projL_s
+        # term2 = (1 - alpha) * s - g
+        # clip_reward = 1 - 0.5 * torch.norm(term1 + term2, p=2, dim=1)**2
 
         # # CLIP socre
         # mask = similarity < 0
@@ -440,8 +441,8 @@ class HumanoidSpecAnySKillRigid(HumanoidAMPGetup):
         # clip_score = 2.5 * similarity
 
         # # RCLIP score
-        # # clip_score - E(clip_score)
-        # # self._exp_sim()
+        # clip_reward =  clip_reward - E(clip_score)
+        # self._exp_sim()
 
         self._similarity = similarity
         return clip_reward, delta, similarity
