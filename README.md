@@ -9,7 +9,7 @@
     <a href='https://www.youtube.com/watch?v=QojOdY2_dTQ'>
       <img src='https://img.shields.io/badge/Video-Youtube-orange?style=plastic&logo=Youtube&logoColor=orange' alt='Video Youtube'>
     </a>
-    <a href='https://drive.google.com/drive/folders/1CKJER3CnVh0o8cwlN8a2c0kQ6HTEqvqj?usp=sharing'>
+    <a href='https://drive.google.com/file/d/1jeFta3iTT7E_m43GpC35FPtE9PdIxdcX/view?usp=sharing'>
       <img src='https://img.shields.io/badge/Model-Checkpoints-green?style=plastic&logo=Google%20Drive&logoColor=green' alt='Checkpoints'>
     </a>
 </p>
@@ -25,7 +25,6 @@
 ## TODOs
 - [x] Release training code.
 - [x] Release the model of low-level controller.
-- [ ] Release the code for transparent solution tracking.
 
 
 ### Installation
@@ -41,7 +40,7 @@ pip install -r requirements.txt
 
 ### Low-level controller training
 
-**[NEW]** We have provided our well-trained model of low-level controller, you can download from [this link]().
+**[NEW]** We have provided our well-trained model of low-level controller, you can download from [this link](https://drive.google.com/file/d/1jeFta3iTT7E_m43GpC35FPtE9PdIxdcX/view?usp=sharing).
 
 
 First, a CALM model can be trained to imitate a dataset of motions clips using the following command:
